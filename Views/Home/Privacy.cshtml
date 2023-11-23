@@ -1,10 +1,4 @@
-﻿@model V1MentionsResponse
-
-@{
-    ViewData["Title"] = "V1 Posts";
-}
-
-<style>
+﻿<style>
     tr { height: 45px; }
     td, th { vertical-align: middle; }
     th { white-space: nowrap; }
@@ -42,89 +36,6 @@
             </div>
         </div>
     </form>
-
-    <div class="tab-view">
-    <ul class="nav nav-tabs" id="postsTabs">
-        <li class="nav-item">
-            <a class="nav-link active" id="v1Tab" data-toggle="tab" href="#v1">V1</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="v2Tab" data-toggle="tab" href="#v2">V2</a>
-        </li>
-    </ul>
-
-    <div class="tab-content">
-        <div class="tab-pane fade show active" id="v1">
-            <p>Post count: @Model.Data.Response.Count</p>
-
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Thumbnail</th>
-                            <th>Title</th>
-                            <th>Insert Time</th>
-                            <th>Type</th>
-                            <th>From</th>
-                            <th>URL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var post in Model.Data.Response)
-                        {
-                        <tr>
-                            <td>@post.Id</td>
-                            <td class="text-center"><img src="@post.Image" alt="N/A" /></td>
-                            <td class="text-truncate" style="max-width: 200px;">@post.Title</td>
-                            <td>@post.Type</td>
-                            <td style="white-space: nowrap;">
-                                @DateTimeOffset.FromUnixTimeSeconds(post.InsertTime).LocalDateTime.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                            <td>@post.From</td>
-                            <td class="text-truncate"><a href="@post.Url" target="_blank">@post.Url</a></td>
-                        </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="tab-pane fade" id="v2">
-            <!-- Table content for V2 -->
-            <p>Post count: @Model.Data.Response.Count</p>
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Thumbnail</th>
-                            <th>Title</th>
-                            <th>Insert Time</th>
-                            <th>Type</th>
-                            <th>From</th>
-                            <th>URL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var post in Model.Data.Response)
-                        {
-                        <tr>
-                            <td>@post.Id</td>
-                            <td class="text-center"><img src="@post.Image" alt="N/A" /></td>
-                            <td class="text-truncate" style="max-width: 200px;">@post.Title</td>
-                            <td>@post.Type</td>
-                            <td style="white-space: nowrap;">
-                                @DateTimeOffset.FromUnixTimeSeconds(post.InsertTime).LocalDateTime.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                            <td>@post.From</td>
-                            <td class="text-truncate"><a href="@post.Url" target="_blank">@post.Url</a></td>
-                        </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    </div>
-
 </div>
 
 @section Scripts {
@@ -156,7 +67,7 @@
             });
 
               // Fetch and update data after the page has loaded
-            @* fetchDataAndUpdateTable(); *@
+            updateTable();
         });
 
         function updateTable() {
@@ -168,18 +79,16 @@
             // Convert date values to Unix timestamps
             var fromTimestamp = Math.floor(new Date(fromDate).getTime() / 1000);
             var toTimestamp = Math.floor(new Date(toDate).getTime() / 1000);
+                    console.log("fetching");
 
-            // Make an AJAX request to the server
+            // Make an AJAX request to the new controller action
             $.ajax({
-                url: '@Url.Action("Privacy", "Home")', // URL to the Privacy action
+                url: '/TabContent/TabContent', // Update the URL based on your project structure
                 type: 'POST',
                 data: { from: fromTimestamp, to: toTimestamp, count: count },
                 success: function (data) {
-                    // Update the table body with the new content
-                    $('#v1 tbody').html($(data).find('#v1 tbody').html());
-                    $('#v2 tbody').html($(data).find('#v2 tbody').html());
-
-                    // Update other elements if needed
+                    // Append the result beneath the filterForm
+                    $('#filterForm').after(data);
 
                     // Additional actions after updating the table
                     console.log("Table updated successfully");

@@ -23,5 +23,9 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+    
+    app.MapControllerRoute(
+    name: "",
+    pattern: "{controller=TabContent}/{action=GetTabContent}/");
 
 app.Run();

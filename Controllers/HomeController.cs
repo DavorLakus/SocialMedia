@@ -24,17 +24,17 @@ public class HomeController : Controller
         return View();
     }
 
-   public async Task<IActionResult> Privacy()
+   public IActionResult Privacy()
     {
-        // Calculate Unix timestamps for two weeks ago and now
-        var twoWeeksAgoTimestamp = DateTimeOffset.UtcNow.AddDays(-14).ToUnixTimeSeconds();
-        var nowTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        // // Calculate Unix timestamps for two weeks ago and now
+        // var twoWeeksAgoTimestamp = DateTimeOffset.UtcNow.AddDays(-14).ToUnixTimeSeconds();
+        // var nowTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-        // Fetch mentions for two weeks ago, now, and 100
-        var mentions = await _apiService.GetV1Mentions(twoWeeksAgoTimestamp, nowTimestamp, 100);
+        // // Fetch mentions for two weeks ago, now, and 100
+        // var mentions = await _apiService.GetV1Mentions(twoWeeksAgoTimestamp, nowTimestamp, 100);
 
         // Pass the data as a model to the Privacy view
-        return View(mentions);
+        return View();
     }
 
     public IActionResult About()
