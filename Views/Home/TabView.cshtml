@@ -1,19 +1,133 @@
+<style>
+    @* #v1table_wrapper, #v2table_wrapper { margin: 16px 0 15vh 0; } *@
+    @* .table { margin: 8px 16px 8px 16px; }
+    #v1table_filter label input, #v1table_filter { margin-left: 8px; } *@
+</style>
+
 <div id="tab-view" class="tab-view">
     <ul class="nav nav-tabs" id="postsTabs">
         <li class="nav-item">
             <a class="nav-link active" id="v1Tab" data-toggle="tab" href="#v1">V1</a>
         </li>
-        @* <li class="nav-item">
+        <li class="nav-item">
             <a class="nav-link" id="v2Tab" data-toggle="tab" href="#v2">V2</a>
-        </li> *@
+        </li>
     </ul>
 
     <div class="tab-content">
         <div class="tab-pane fade show active" id="v1">
-            @Html.Partial("TabContent")
+            @Html.Partial("TabContent", 1)
         </div>
-        @* <div class="tab-pane fade" id="v2">
-            @Html.Partial("TabContent")
-        </div> *@
+        <div class="tab-pane fade" id="v2">
+            @Html.Partial("TabContent", 2)
+        </div>
     </div>
 </div>
+
+<script>
+    $(document).ready(function () {
+        var twoWeeksAgo = new Date();
+        var today = new Date();
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+        $('#fromDate').datepicker('setDate', twoWeeksAgo);
+        $('#toDate').datepicker('setDate', today);
+        $('#count').val(10);
+
+        $('.datepicker').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true
+        });
+    
+        setupDetermTable(1);
+        setupDetermTable(2);
+        
+        initTabs();
+    });
+
+    function initTabs() {
+         $('#postsTabs a').on('click', function (e) {
+            e.preventDefault();
+            $(this).tab('show');
+        });
+    }
+
+    function updateTable(id) {
+        var fromDate = $('#fromDate').val();
+        var fromTimestamp = Math.floor(new Date(fromDate).getTime() / 1000);
+        
+        var toDate = $('#toDate').val();
+        var toTimestamp = Math.floor(new Date(toDate).getTime() / 1000);
+        
+        var count = $('#count').val();
+
+        $(`#v${id}table`).DataTable().destroy();
+        setupDetermTable(id, fromTimestamp, toTimestamp, count);
+    }
+
+    function setupDetermTable(id) {
+        var fromDate = $('#fromDate').val();
+        var from = Math.floor(new Date(fromDate).getTime() / 1000);
+        
+        var toDate = $('#toDate').val();
+        var to = Math.floor(new Date(toDate).getTime() / 1000);
+        
+        var count = $('#count').val();
+
+        console.log(`setting up V${id}table calling request with from: ${from}, to: ${to}, count ${count}`);
+
+        $(`#v${id}table`).DataTable().destroy();
+
+        $(`#v${id}table`).DataTable({
+            ajax: {
+                url: '/TabContent/LoadData',
+                type: 'POST',
+                data: { from: from, to: to, count: count },
+                dataSrc: ''
+            },
+            columns: [
+                {
+                    data: 'id', render: function (data, type, row, meta) {
+                        return data;
+                    }
+                },
+                {
+                    data: 'thumbnail',
+                    className: 'text-center',
+                    render: function (data, type, row, meta) {
+                        return '<img src="' + data + '" alt="N/A" />';
+                    }
+                },
+                {
+                    data: 'title',
+                    render: function (data, type, row, meta) {
+                        return '<div class="text-truncate" style="max-width: 200px;">' + data + '</div>';
+                    }
+                },
+                {
+                    data: 'insertTime',
+                    render: function (data, type, row, meta) {
+                        return '<div style="white-space: nowrap;">' + moment.unix(data).format('YYYY.MM.DD HH:mm') + '</div>';
+                    }
+                },
+                { data: 'type' },
+                { data: 'from' },
+                {
+                    data: 'url',
+                    render: function (data, type, row, meta) {
+                        return '<div class="text-truncate" style="max-width: 200px;"><a href="' + data + '" target="_blank">' + data + '</a></div>';
+                    }
+                }
+            ],
+            lengthChange: false,
+            paging: false,
+            info: true,
+            order: [[3, 'desc']],
+            dom: 'Bfrtip',
+            buttons: [ 'excel' ],
+            initComplete: function (settings, json) {
+                console.log(json);
+            }
+        });
+    }
+</script>

@@ -11,6 +11,16 @@ public class V1MentionsResponse
     public int Duration { get; set; }
 }
 
+public class ModelTab {
+    public int Value {get; set; }
+
+     // Constructor
+    public ModelTab(int Value)
+    {
+        this.Value = Value;
+    }
+}
+
 public class Posts
 {
     public List<Post> Response { get; set; }
@@ -65,4 +75,10 @@ public class PostTableViewModel
     public string Type { get; set; }
     public string From { get; set; }
     public string Url { get; set; }
+}
+
+public enum DetermTab
+{
+    One,
+    Two
 }
