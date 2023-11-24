@@ -16,87 +16,14 @@
 
 <h1>Determ posts</h1>
 <div class="container-fluid">
-    <form id="filterForm">
-        <div class="row">
-            <div class="col-md-3 mb-3">
-                <label for="fromDate">From Date</label>
-                <input type="text" class="form-control datepicker" id="fromDate" name="fromDate" />
-            </div>
-            <div class="col-md-3 mb-3">
-                <label for="toDate">To Date</label>
-                <input type="text" class="form-control datepicker" id="toDate" name="toDate" />
-            </div>
-            <div class="col-md-3 mb-3">
-                <label for="count">Post Count</label>
-                <input type="text" class="form-control" id="count" name="count" />
-            </div>
-            <div class="col-md-3 mb-3">
-                <label>&nbsp;</label>
-                <button type="button" class="btn btn-primary" onclick="updateTable()">Apply Filters</button>
-            </div>
-        </div>
-    </form>
+    @Html.Partial("FilterForm")
+    @Html.Partial("TabView")
 </div>
 
 @section Scripts {
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-
-    <script>
-        $(document).ready(function () {
-            // Preload From Date with two weeks ago
-            var twoWeeksAgo = new Date();
-            twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-            $('#fromDate').datepicker('setDate', twoWeeksAgo);
-
-            // Preload To Date with today's date
-            var today = new Date();
-            $('#toDate').datepicker('setDate', today);
-
-            // Preload Post Count with 100
-            $('#count').val(100);
-
-            // Initialize datepicker
-            $('.datepicker').datepicker({
-                format: 'yyyy-mm-dd',
-                autoclose: true
-            });
-
-              // Fetch and update data after the page has loaded
-            updateTable();
-        });
-
-        function updateTable() {
-            // Retrieve filter values
-            var fromDate = $('#fromDate').val();
-            var toDate = $('#toDate').val();
-            var count = $('#count').val();
-
-            // Convert date values to Unix timestamps
-            var fromTimestamp = Math.floor(new Date(fromDate).getTime() / 1000);
-            var toTimestamp = Math.floor(new Date(toDate).getTime() / 1000);
-                    console.log("fetching");
-
-            // Make an AJAX request to the new controller action
-            $.ajax({
-                url: '/TabContent/TabContent', // Update the URL based on your project structure
-                type: 'POST',
-                data: { from: fromTimestamp, to: toTimestamp, count: count },
-                success: function (data) {
-                    // Append the result beneath the filterForm
-                    $('#filterForm').after(data);
-
-                    // Additional actions after updating the table
-                    console.log("Table updated successfully");
-                },
-                error: function (error) {
-                    console.error(error);
-                }
-            });
-        }
-    </script>
 }

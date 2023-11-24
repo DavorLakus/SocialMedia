@@ -3,12 +3,14 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Net.Http.Json;
+using System.Text.Json;
+
 using System.Threading.Tasks;
+using Newtonsoft.Json.Converters;
 
 // IApiService.cs
 public interface IApiService
 {
-    Task<V1MentionsResponse> GetV1Mentions();
     Task<V1MentionsResponse> GetV1Mentions(long from, long to, int count);
 }
 
@@ -20,10 +22,6 @@ public class ApiService : IApiService
     public ApiService(HttpClient httpClient)
     {
         _httpClient = httpClient;
-    }
-    public async Task<V1MentionsResponse> GetV1Mentions()
-    {
-        return await GetV1Mentions(1697872914, 1700558566, 10);
     }
 
     public async Task<V1MentionsResponse> GetV1Mentions(long from, long to, int count)

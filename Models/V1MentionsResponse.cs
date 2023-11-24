@@ -55,3 +55,14 @@ public class Post
     public List<string> Locations { get; set; }
     public List<string> KeywordNames { get; set; }
 }
+
+public class PostTableViewModel
+{
+    public long Id { get; set; }
+    public string Title { get; set; }
+    public string Thumbnail { get; set; }
+    public long InsertTime { get; set; }
+    public string Type { get; set; }
+    public string From { get; set; }
+    public string Url { get; set; }
+}

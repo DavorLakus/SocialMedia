@@ -1,0 +1,108 @@
+<style>
+    #v1table_wrapper { margin: 16px 0 15vh 0; }
+    .table { margin: 8px 0 8px 0; }
+    #v1table_filter label input, #v1table_filter { margin-left: 8px; }
+</style>
+
+<table id="v1table" class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Thumbnail</th>
+            <th>Title</th>
+            <th>Insert Time</th>
+            <th>Type</th>
+            <th>From</th>
+            <th>URL</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    $(document).ready(function () {
+        var twoWeeksAgo = new Date();
+        var today = new Date();
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+        $('#fromDate').datepicker('setDate', twoWeeksAgo);
+        $('#toDate').datepicker('setDate', today);
+        $('#count').val(10);
+
+        $('.datepicker').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true
+        });
+
+        setupTable();
+    });
+
+    function updateTable() {
+        $('#v1table').DataTable().destroy();
+        setupTable();
+    }
+
+    function setupTable() {
+        // Retrieve filter values
+        var fromDate = $('#fromDate').val();
+        var toDate = $('#toDate').val();
+        var count = $('#count').val();
+
+        // Convert date values to Unix timestamps
+        var fromTimestamp = Math.floor(new Date(fromDate).getTime() / 1000);
+        var toTimestamp = Math.floor(new Date(toDate).getTime() / 1000);
+
+        $('#v1table').DataTable({
+            ajax: {
+                url: '/TabContent/LoadData',
+                type: 'POST',
+                data: { from: fromTimestamp, to: toTimestamp, count: count },
+                dataSrc: ''  // Tell DataTables where to find the data in the JSON response
+            },
+            columns: [
+                {
+                    data: 'id', render: function (data, type, row, meta) {
+                        return data;
+                    }
+                },
+                {
+                    data: 'thumbnail',
+                    className: 'text-center',
+                    render: function (data, type, row, meta) {
+                        return '<img src="' + data + '" alt="N/A" />';
+                    }
+                },
+                {
+                    data: 'title',
+                    render: function (data, type, row, meta) {
+                        return '<div class="text-truncate" style="max-width: 200px;">' + data + '</div>';
+                    }
+                },
+                {
+                    data: 'insertTime',
+                    render: function (data, type, row, meta) {
+                        return '<div style="white-space: nowrap;">' + moment.unix(data).format('YYYY-MM-DD HH:mm:ss') + '</div>';
+                    }
+                },
+                { data: 'type' },
+                { data: 'from' },
+                {
+                    data: 'url',
+                    render: function (data, type, row, meta) {
+                        return '<div class="text-truncate" style="max-width: 200px;"><a href="' + data + '" target="_blank">' + data + '</a></div>';
+                    }
+                }
+            ],
+            lengthChange: false,
+            paging: false,
+            info: true,
+            order: [[3, 'desc']],
+            dom: 'Bfrtip',
+            buttons: [ 'excel' ],
+            initComplete: function (settings, json) {
+                console.log(json);
+            }
+        });
+
+    }
+</script>
