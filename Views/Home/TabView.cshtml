@@ -1,9 +1,13 @@
 <style>
     #v1table_wrapper, #v2table_wrapper { margin: 16px 0 15vh 0; }
+    .even-row { background-color: #ffffff !important;}
+    .odd-row { background-color: #f2f2f2 !important; }
+    .data-unavailable { background-color: #f09085 !important;}
 </style>
 
 <div id="tab-view" class="tab-view">
-    <ul class="nav nav-tabs" id="postsTabs">
+    <ul class="nav nav-tabs d-flex" style="font-weight: 600;" id="postsTabs">
+        <li class="p-2">Determ API:</li>
         <li class="nav-item">
             <a class="nav-link active" id="v1Tab" data-toggle="tab" href="#v1">V1</a>
         </li>
@@ -70,7 +74,9 @@
         
         var count = $('#count').val();
 
-        console.log(`setting up V${id}table calling request with from: ${from}, to: ${to}, count ${count}`);
+        var groupId = getGroupId($('#group').val());
+
+        console.log(`setting up V${id}table calling request with from: ${from}, to: ${to}, group: ${groupId}, count ${count}`);
 
         $(`#v${id}table`).DataTable().destroy();
 
@@ -78,7 +84,7 @@
             ajax: {
                 url: '/TabContent/LoadData/',
                 type: 'POST',
-                data: { from: from, to: to, count: count, id: id },
+                data: { from: from, to: to, count: count, groupId: groupId, id: id },
                 dataSrc: ''
             },
             columns: [
@@ -91,13 +97,21 @@
                     data: 'thumbnail',
                     className: 'text-center',
                     render: function (data, type, row, meta) {
-                        return '<img src="' + data + '" alt="N/A" />';
+                        if (data != null) {
+                            return '<img src="' + data + '" alt="N/A" />';
+                        } else {
+                            return "N/A"
+                        }
                     }
                 },
                 {
                     data: 'title',
                     render: function (data, type, row, meta) {
+                        if (data != null) {
                         return '<div class="text-truncate" style="max-width: 200px;">' + data + '</div>';
+                        } else {
+                            return "N/A"
+                        }
                     }
                 },
                 {
@@ -109,16 +123,32 @@
                 { data: 'type' },
                 { data: 'from',
                     render: function (data, type, row, meta) {
-                        return `<div style="white-space: nowrap;">${data}</div>` 
+                        if (data != null) {
+                            return `<div class="text-truncate" style="max-width: 100px;">${data}</div>`; 
+                        } else { 
+                            return "N/A";
                         }
+                    }
                 },
                 {
                     data: 'url',
                     render: function (data, type, row, meta) {
-                        return '<div class="text-truncate" style="max-width: 200px;"><a href="' + data + '" target="_blank">' + data + '</a></div>';
+                        if (data != null) {
+                            return `<div class="text-truncate" style="max-width: 200px;"><a href="${data}" target="_blank">${data}</a></div>`;
+                        } else {
+                            return "N/A"
+                        }
                     }
                 }
-            ],
+            ], rowCallback: function (row, data, index) {
+                if (data["url"] == null) {
+                    $(row).addClass('data-unavailable');
+                } else if (index % 2 == 0) {
+                    $(row).addClass('even-row');
+                } else {
+                    $(row).addClass('odd-row');
+                }
+            },
             lengthChange: false,
             paging: false,
             info: true,

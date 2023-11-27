@@ -11,8 +11,8 @@ using Newtonsoft.Json.Converters;
 // IApiService.cs
 public interface IApiService
 {
-    Task<V1MentionsResponse> GetV1Mentions(long from, long to, int count);
-    Task<V2MentionsResponse> GetV2Mentions(long from, long to, int count);
+    Task<V1MentionsResponse> GetV1Mentions(long from, long to, int groupId, int count);
+    Task<V2MentionsResponse> GetV2Mentions(long from, long to, int groupId, int count);
 }
 
 // ApiService.cs
@@ -26,11 +26,11 @@ public class ApiService : IApiService
         _httpClient = httpClient;
     }
 
-    public async Task<V1MentionsResponse> GetV1Mentions(long from, long to, int count)
+    public async Task<V1MentionsResponse> GetV1Mentions(long from, long to, int groupId, int count)
     {
         try
         {
-            var requestUri = $"https://api.mediatoolkit.com/organizations/160996/groups/215519/mentions?access_token={AccessToken}&from_time={from}&to_time={to}&sort=time&count={count}";
+            var requestUri = $"https://api.mediatoolkit.com/organizations/160996/groups/{groupId}/mentions?access_token={AccessToken}&from_time={from}&to_time={to}&sort=time&count={count}";
 
             using (var response = await _httpClient.GetAsync(requestUri))
             {
@@ -47,11 +47,11 @@ public class ApiService : IApiService
         }
     }
 
-     public async Task<V2MentionsResponse> GetV2Mentions(long from, long to, int count)
+     public async Task<V2MentionsResponse> GetV2Mentions(long from, long to, int groupId, int count)
     {
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.mediatoolkit.com/v2/organization/160996/group/215519/mentions/scroll?sourceToken={SourceToken}");
+            var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.mediatoolkit.com/v2/organization/160996/group/{groupId}/mentions/scroll?sourceToken={SourceToken}");
             request.Headers.Add("Authorization", $"Bearer {AccessToken}");
             var content = new StringContent
             (

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 // TabContentController.cs
 
 using Microsoft.AspNetCore.Mvc;
@@ -14,21 +15,7 @@ public class TabContentController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> TabContent(int from, int to, int count)
-    {
-         // Calculate Unix timestamps for two weeks ago and now
-        var twoWeeksAgoTimestamp = DateTimeOffset.UtcNow.AddDays(-14).ToUnixTimeSeconds();
-        var nowTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-
-        // Fetch mentions for two weeks ago, now, and 100
-        var mentions = await _apiService.GetV1Mentions(twoWeeksAgoTimestamp, nowTimestamp, count);
-        // return PartialView(mentions);
-
-        return PartialView("TabView", mentions);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> LoadData(int from, int to, int count, int id)
+    public async Task<IActionResult> LoadData(int from, int to, int count, int groupId, int id)
     {
          // Calculate Unix timestamps for two weeks ago and now
         var twoWeeksAgoTimestamp = DateTimeOffset.UtcNow.AddDays(-14).ToUnixTimeSeconds();
@@ -36,7 +23,7 @@ public class TabContentController : Controller
 
         List<PostTableViewModel> mentions = new List<PostTableViewModel>();
         if (id == 1) {
-            var v1mentions = await _apiService.GetV1Mentions(twoWeeksAgoTimestamp, nowTimestamp, count);
+            var v1mentions = await _apiService.GetV1Mentions(twoWeeksAgoTimestamp, nowTimestamp, groupId, count);
             mentions = v1mentions.Data.Response.Select(post => new PostTableViewModel
             {
                 Id = post.Id,
@@ -48,7 +35,7 @@ public class TabContentController : Controller
                 Url = post.Url
             }).ToList();
         } else if (id == 2) {
-            var v2mentions = await _apiService.GetV2Mentions(twoWeeksAgoTimestamp, nowTimestamp, count);
+            var v2mentions = await _apiService.GetV2Mentions(twoWeeksAgoTimestamp, nowTimestamp, groupId, count);
             mentions = v2mentions.Mentions.Select(post => new PostTableViewModel
             {
                 Id = post.Id,

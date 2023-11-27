@@ -1,4 +1,5 @@
-<form id="filterForm">
+
+<form id="filterForm" class="m-3">
     <div class="row">
         <div class="col-md-3 mb-3">
             <label for="fromDate">From Date</label>
@@ -12,9 +13,40 @@
             <label for="count">Post Count</label>
             <input type="text" class="form-control" id="count" name="count" />
         </div>
-        <div class="col-md-3 mb-3">
-            <label>&nbsp;</label>
-            <button type="button" class="btn btn-primary" style="background: #0176ac;" onclick="updateTables()">Apply Filters</button>
+    </div>
+    <div class="row">
+        <div class="col-3 mb-3">
+            <label for="group">Group</label>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="groupDropdown"
+                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                </button>
+                <div class="dropdown-menu" aria-labelledby="groupDropdown">
+                    <a class="dropdown-item" href="#" data-bs-value="DFL">DFL</a>
+                    <a class="dropdown-item" href="#" data-bs-value="EPL">EPL</a>
+                    <a class="dropdown-item" href="#" data-bs-value="Bundesliga 1">Bundesliga 1</a>
+                    <a class="dropdown-item" href="#" data-bs-value="Bundesliga 2">Bundesliga 2</a>
+                </div>
+            </div>
+            <input type="hidden" id="group" name="group" value="DFL" />
+        </div>
+        <div class="col-3 mb-3"></div>
+        <div class="col-3 mb-3 d-flex align-items-end justify-content-center">
+            @* <label>&nbsp;</label> *@
+            <button type="button" class="btn btn-primary" style="background: #0176ac;" onclick="updateTables()">Apply
+                Filters</button>
         </div>
     </div>
 </form>
+
+<script>
+    $(document).ready(function () {
+        $('#groupDropdown').text($('#group').val());
+
+        $('.dropdown-item').on('click', function () {
+            var selectedValue = $(this).data('bs-value');
+            $('#groupDropdown').text(selectedValue);
+            $('#group').val(selectedValue);
+        });
+    });
+</script>
