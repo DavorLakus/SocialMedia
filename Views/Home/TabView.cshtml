@@ -1,7 +1,5 @@
 <style>
-    @* #v1table_wrapper, #v2table_wrapper { margin: 16px 0 15vh 0; } *@
-    @* .table { margin: 8px 16px 8px 16px; }
-    #v1table_filter label input, #v1table_filter { margin-left: 8px; } *@
+    #v1table_wrapper, #v2table_wrapper { margin: 16px 0 15vh 0; }
 </style>
 
 <div id="tab-view" class="tab-view">
@@ -52,17 +50,15 @@
         });
     }
 
-    function updateTable(id) {
-        var fromDate = $('#fromDate').val();
-        var fromTimestamp = Math.floor(new Date(fromDate).getTime() / 1000);
-        
-        var toDate = $('#toDate').val();
-        var toTimestamp = Math.floor(new Date(toDate).getTime() / 1000);
-        
-        var count = $('#count').val();
+    function updateTables() {
+        $(`#v1table`).DataTable().destroy();
+        $(`#v2table`).DataTable().destroy();
+        setupDetermTables();
+    }
 
-        $(`#v${id}table`).DataTable().destroy();
-        setupDetermTable(id, fromTimestamp, toTimestamp, count);
+    function setupDetermTables() {
+        setupDetermTable(1);
+        setupDetermTable(2);
     }
 
     function setupDetermTable(id) {
@@ -80,9 +76,9 @@
 
         $(`#v${id}table`).DataTable({
             ajax: {
-                url: '/TabContent/LoadData',
+                url: '/TabContent/LoadData/',
                 type: 'POST',
-                data: { from: from, to: to, count: count },
+                data: { from: from, to: to, count: count, id: id },
                 dataSrc: ''
             },
             columns: [
@@ -111,7 +107,11 @@
                     }
                 },
                 { data: 'type' },
-                { data: 'from' },
+                { data: 'from',
+                    render: function (data, type, row, meta) {
+                        return `<div style="white-space: nowrap;">${data}</div>` 
+                        }
+                },
                 {
                     data: 'url',
                     render: function (data, type, row, meta) {
