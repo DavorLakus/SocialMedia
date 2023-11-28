@@ -3,6 +3,27 @@
     .even-row { background-color: #ffffff !important;}
     .odd-row { background-color: #f2f2f2 !important; }
     .data-unavailable { background-color: #f09085 !important;}
+    .custom-tooltip {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        padding: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        color: #333;
+    }
+
+    .export-button {
+        background-color: #01AC8D !important;
+        border-color: #f2f2f2 !important;
+        display: inline-block;
+        font-weight: 400 !important;
+        color: #f2f2f2 !important;
+        padding: 10px 20px 10px 20px !important;
+        font-size: 1rem !important;
+        line-height: 1.5 !important;
+        border-radius: 0.25rem !important;
+    }
+
+    .dt-buttons, .dataTables_filter { margin: 0rem 3rem 0.75rem 3rem; }
 </style>
 
 <div id="tab-view" class="tab-view">
@@ -27,22 +48,10 @@
 </div>
 
 <script>
+    var isLoaded = false;
+
     $(document).ready(function () {
-        var twoWeeksAgo = new Date();
-        var today = new Date();
-        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-
-        $('#fromDate').datepicker('setDate', twoWeeksAgo);
-        $('#toDate').datepicker('setDate', today);
-        $('#count').val(10);
-
-        $('.datepicker').datepicker({
-            format: 'yyyy-mm-dd',
-            autoclose: true
-        });
-    
-        setupDetermTable(1);
-        setupDetermTable(2);
+        setupDetermTables();
         
         initTabs();
     });
@@ -57,40 +66,42 @@
     function updateTables() {
         $(`#v1table`).DataTable().destroy();
         $(`#v2table`).DataTable().destroy();
-        setupDetermTables();
+        setupDetermTables(true);
     }
 
-    function setupDetermTables() {
-        setupDetermTable(1);
-        setupDetermTable(2);
+    function setupDetermTables(update) {
+        setupDetermTable(1, update);
+        setupDetermTable(2, update);
     }
 
-    function setupDetermTable(id) {
+    function setupDetermTable(id, update) {
         var fromDate = $('#fromDate').val();
         var from = Math.floor(new Date(fromDate).getTime() / 1000);
         
         var toDate = $('#toDate').val();
+        console.log(`=====> to date ${toDate}`)
         var to = Math.floor(new Date(toDate).getTime() / 1000);
         
         var count = $('#count').val();
 
-        var groupId = getGroupId($('#group').val());
+        var group = $('#group').val();
+        var groupId = getGroupId(group);
 
         console.log(`setting up V${id}table calling request with from: ${from}, to: ${to}, group: ${groupId}, count ${count}`);
+        var data = (update) ? { from: from, to: to, count: count, groupId: groupId, id: id } : {id: id}; 
 
         $(`#v${id}table`).DataTable().destroy();
-
         $(`#v${id}table`).DataTable({
             ajax: {
-                url: '/TabContent/LoadData/',
+                url: `/TabContent/${(update) ? "Update" : "Load"}Data/`,
                 type: 'POST',
-                data: { from: from, to: to, count: count, groupId: groupId, id: id },
+                data: data,
                 dataSrc: ''
             },
             columns: [
                 {
                     data: 'id', render: function (data, type, row, meta) {
-                        return data;
+                        return `<div data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
                     }
                 },
                 {
@@ -98,7 +109,7 @@
                     className: 'text-center',
                     render: function (data, type, row, meta) {
                         if (data != null) {
-                            return '<img src="' + data + '" alt="N/A" />';
+                            return `<img src="${data}" style="max-width: 75px;" alt="N/A"/>`;
                         } else {
                             return "N/A"
                         }
@@ -108,7 +119,7 @@
                     data: 'title',
                     render: function (data, type, row, meta) {
                         if (data != null) {
-                        return '<div class="text-truncate" style="max-width: 200px;">' + data + '</div>';
+                            return `<div class="text-truncate" style="max-width: 200px;" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
                         } else {
                             return "N/A"
                         }
@@ -124,7 +135,7 @@
                 { data: 'from',
                     render: function (data, type, row, meta) {
                         if (data != null) {
-                            return `<div class="text-truncate" style="max-width: 100px;">${data}</div>`; 
+                            return `<div class="text-truncate" style="max-width: 100px;" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
                         } else { 
                             return "N/A";
                         }
@@ -134,7 +145,7 @@
                     data: 'url',
                     render: function (data, type, row, meta) {
                         if (data != null) {
-                            return `<div class="text-truncate" style="max-width: 200px;"><a href="${data}" target="_blank">${data}</a></div>`;
+                            return `<div class="text-truncate" style="max-width: 200px;" data-toggle="tooltip" data-placement="top" title="${data}"><a href="${data}" target="_blank">${data}</a></div>`;
                         } else {
                             return "N/A"
                         }
@@ -154,10 +165,38 @@
             info: true,
             order: [[3, 'desc']],
             dom: 'Bfrtip',
-            buttons: [ 'excel' ],
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: 'Export',
+                    className: 'export-button',
+                    title: `${fromDate} -- ${toDate} V${id} - ${group}`
+                }
+            ],
             initComplete: function (settings, json) {
                 console.log(json);
+                isLoaded = true;
             }
         });
+
+         // Initialize tooltips
+        $('[data-toggle="tooltip"]').tooltip({
+            animation: true,
+            delay: { "show": 0.0, "hide": 0.3 },
+            html: true,
+        });
+
+        window.onscroll = function () {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight &&
+                isLoaded) {
+                addRows();
+            }
+        };
+    }
+
+    function addRows() {
+        console.log('Reached the end of the page');
+        var currentCount = $('#count').val();
+        var increment = currentCount < 100 ? 10 : 100;
     }
 </script>

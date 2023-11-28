@@ -8,6 +8,12 @@ using Newtonsoft.Json.Converters;
 public class TabContentController : Controller
 {
     private readonly IApiService _apiService;
+    private readonly int twoWeeksAgoTimestamp = (int)DateTimeOffset.UtcNow.AddDays(-14).ToUnixTimeSeconds();
+    private readonly int nowTimestamp = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    private readonly int defaultCount = 100;
+    private readonly int DFLGroupId = 215519;
+    private List<PostTableViewModel> V1ViewModel = new List<PostTableViewModel>();
+    private List<PostTableViewModel> V2ViewModel = new List<PostTableViewModel>();
 
     public TabContentController(IApiService apiService)
     {
@@ -15,16 +21,17 @@ public class TabContentController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> LoadData(int from, int to, int count, int groupId, int id)
+    public async Task<IActionResult> LoadData(int id) {
+        return await UpdateData(twoWeeksAgoTimestamp, nowTimestamp, defaultCount, DFLGroupId, id);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdateData(int from, int to, int count, int groupId, int id)
     {
-         // Calculate Unix timestamps for two weeks ago and now
-        var twoWeeksAgoTimestamp = DateTimeOffset.UtcNow.AddDays(-14).ToUnixTimeSeconds();
-        var nowTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-
-        List<PostTableViewModel> mentions = new List<PostTableViewModel>();
         if (id == 1) {
-            var v1mentions = await _apiService.GetV1Mentions(twoWeeksAgoTimestamp, nowTimestamp, groupId, count);
-            mentions = v1mentions.Data.Response.Select(post => new PostTableViewModel
+            var V1Mentions = await _apiService.GetV1Mentions(from, to, groupId, count);
+            V1ViewModel = new List<PostTableViewModel>();
+            V1ViewModel = V1Mentions.Data.Response.Select(post => new PostTableViewModel
             {
                 Id = post.Id,
                 Title = post.Title,
@@ -34,9 +41,11 @@ public class TabContentController : Controller
                 From = post.From,
                 Url = post.Url
             }).ToList();
-        } else if (id == 2) {
-            var v2mentions = await _apiService.GetV2Mentions(twoWeeksAgoTimestamp, nowTimestamp, groupId, count);
-            mentions = v2mentions.Mentions.Select(post => new PostTableViewModel
+            return Json(V1ViewModel);
+        } else {
+            var V2Mentions = await _apiService.GetV2Mentions(from, to, groupId, count);
+            V2ViewModel = new List<PostTableViewModel>();
+            V2ViewModel = V2Mentions.Mentions.Select(post => new PostTableViewModel
             {
                 Id = post.Id,
                 Title = post.Title,
@@ -46,8 +55,7 @@ public class TabContentController : Controller
                 From = post.From,
                 Url = post.Url
             }).ToList();
+            return Json(V2ViewModel);
         }
-
-        return Json(mentions);
     }
 }

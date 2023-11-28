@@ -21,6 +21,7 @@ public class ApiService : IApiService
     private readonly HttpClient _httpClient;
     private readonly string AccessToken = "3d6u7eqx5anw9v72dxkr9imz8vwkl3ye73dsgv427q3lu7npua";
     private readonly string SourceToken = "130fd26e789be8219d0a52bc937f082e";
+    private string ScrollToken = "";
     public ApiService(HttpClient httpClient)
     {
         _httpClient = httpClient;
@@ -41,8 +42,6 @@ public class ApiService : IApiService
         }
         catch (HttpRequestException ex)
         {
-            // Handle exceptions (log, rethrow, etc.)
-            // You might want to define a custom exception type for better error handling
             throw new ApiException("Error occurred while fetching V1 mentions.", ex);
         }
     }
@@ -56,26 +55,27 @@ public class ApiService : IApiService
             var content = new StringContent
             (
                $@"
-                    {{
-                        ""query"": {{
-                            ""publishedTime"": {{
-                                ""from"": { from * 1000 },
-                                ""to"": { to * 1000 }
-                            }}
-                        }},
-                        ""paged"": {{
-                            ""count"": { count },
-                            ""sorted"": {{
-                                ""direction"": ""DESC"",
-                                ""property"": ""PUBLISHED_TIME""
-                            }}
+                {{
+                    ""query"": {{
+                        ""publishedTime"": {{
+                            ""from"": { from * 1000 },
+                            ""to"": { to * 1000 }
                         }}
-                    }}",
+                    }},
+                    ""paged"": {{
+                        ""count"": { count },
+                        ""sorted"": {{
+                            ""direction"": ""DESC"",
+                            ""property"": ""PUBLISHED_TIME""
+                        }}
+                    }}
+                    { (string.IsNullOrEmpty(ScrollToken) ? "" : $@",\nscrollToken : { ScrollToken }") }
+                }}
+                ",
                 null,
                 "application/json"
             );
             request.Content = content;
-
 
             using (var response = await _httpClient.SendAsync(request))
             {

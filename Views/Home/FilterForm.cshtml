@@ -1,21 +1,23 @@
 
 <form id="filterForm" class="m-3">
-    <div class="row">
-        <div class="col-md-3 mb-3">
+    <div class="row d-flex justify-content-center ml-3 mr-3">
+        <div class="col-4 mb-3">
             <label for="fromDate">From Date</label>
-            <input type="text" class="form-control datepicker" id="fromDate" name="fromDate" />
+            <input type="text" class="form-control datepicker w-75" id="fromDate" name="fromDate" />
+            <span id="dateFromError" class="text-danger"></span>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-4 mb-3">
             <label for="toDate">To Date</label>
-            <input type="text" class="form-control datepicker" id="toDate" name="toDate" />
+            <input type="text" class="form-control datepicker w-75" id="toDate" name="toDate" />
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-4 mb-3">
             <label for="count">Post Count</label>
-            <input type="text" class="form-control" id="count" name="count" />
+            <input type="text" class="form-control w-auto" id="count" name="count" />
+            <span id="countError" class="text-danger"></span>
         </div>
     </div>
-    <div class="row">
-        <div class="col-3 mb-3">
+    <div class="row d-flex justify-content-center ml-3 mr-3">
+        <div class="col-4 mb-3">
             <label for="group">Group</label>
             <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="groupDropdown"
@@ -30,17 +32,27 @@
             </div>
             <input type="hidden" id="group" name="group" value="DFL" />
         </div>
-        <div class="col-3 mb-3"></div>
-        <div class="col-3 mb-3 d-flex align-items-end justify-content-center">
-            @* <label>&nbsp;</label> *@
-            <button type="button" class="btn btn-primary" style="background: #0176ac;" onclick="updateTables()">Apply
-                Filters</button>
+        <div class="col-4 mb-3"></div>
+        <div class="col-4 mb-3 d-flex align-items-end justify-content-center">
+            <button type="button" class="btn btn-primary" style="background: #0176ac;" onclick="validateAndUpdateTables()">Apply Filters</button>
         </div>
     </div>
 </form>
 
 <script>
     $(document).ready(function () {
+        var twoWeeksAgo = new Date();
+        var today = new Date();
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+        $('.datepicker').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true
+        });
+        $('#fromDate').datepicker('setDate', twoWeeksAgo);
+        $('#toDate').datepicker('setDate', today);
+        $('#count').val(100);
+
         $('#groupDropdown').text($('#group').val());
 
         $('.dropdown-item').on('click', function () {
@@ -49,4 +61,32 @@
             $('#group').val(selectedValue);
         });
     });
+
+     function validateAndUpdateTables() {
+        $('#countError').text('');
+        $('#dateFromError').text('');
+
+        var count = $('#count').val();
+        if (isNaN(count) || count <= 10) {
+            $('#countError').text('Count must be greater than 10.');
+            return; 
+        }
+
+        var fromDate = $('#fromDate').val();
+        var toDate = $('#toDate').val();
+        if (!isValidDateFormat(fromDate) || !isValidDateFormat(toDate)) {
+            return;
+        }
+
+        if (new Date(fromDate) >= new Date(toDate)) {
+            $('#dateFromError').text('The \"From\" date must be before the \"To\" date');
+            return;
+        }
+
+        updateTables();
+    }
+
+    function isValidDateFormat(dateString) {
+        return true;
+    }
 </script>
