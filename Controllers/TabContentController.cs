@@ -39,7 +39,8 @@ public class TabContentController : Controller
                 InsertTime = post.InsertTime,
                 Type = post.Type,
                 From = post.From,
-                Url = post.Url
+                Url = post.Url,
+                SourceReach = post.SourceReach
             }).ToList();
             return Json(V1ViewModel);
         } else {
@@ -53,7 +54,16 @@ public class TabContentController : Controller
                 InsertTime = post.InsertTime,
                 Type = post.Type,
                 From = post.From,
-                Url = post.Url
+                Url = post.Url,
+                Reach = post.Reach,
+                SourceReach = post.SourceReach,
+                Interaction = post.Interaction,
+                InfluenceScore = post.InfluenceScore,
+                LikeCount = post.LikeCount,
+                CommentCount = post.CommentCount,
+                ShareCount = post.ShareCount,
+                Virality = post.Virality,
+                AutoSentiment = post.AutoSentiment
             }).ToList();
             return Json(V2ViewModel);
         }

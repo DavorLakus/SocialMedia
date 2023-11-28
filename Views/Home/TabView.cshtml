@@ -135,7 +135,7 @@
                 { data: 'from',
                     render: function (data, type, row, meta) {
                         if (data != null) {
-                            return `<div class="text-truncate" style="max-width: 100px;" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
+                            return `<div class="text-truncate" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
                         } else { 
                             return "N/A";
                         }
@@ -150,7 +150,16 @@
                             return "N/A"
                         }
                     }
-                }
+                },
+                { data: 'reach' },
+                { data: 'sourceReach' },
+                { data: 'interaction' },
+                { data: 'influenceScore' },
+                { data: 'likeCount' },
+                { data: 'commentCount' },
+                { data: 'shareCount' },
+                { data: 'virality' },
+                { data: 'autoSentiment' }
             ], rowCallback: function (row, data, index) {
                 if (data["url"] == null) {
                     $(row).addClass('data-unavailable');
@@ -161,10 +170,10 @@
                 }
             },
             lengthChange: false,
-            paging: false,
             info: true,
             order: [[3, 'desc']],
             dom: 'Bfrtip',
+            paging: false,
             buttons: [
                 {
                     extend: 'excelHtml5',
