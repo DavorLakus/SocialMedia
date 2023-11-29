@@ -71,30 +71,27 @@
             var selectedValue = $(this).data('bs-value');
             $('#groupDropdown').text(selectedValue);
             $('#group').val(selectedValue);
+            $("#group").trigger("change");
         });
 
-        // Event listener for keyword options
         $(document).on('click', '.keyword', function () {
             var selectedKeyword = $(this).data('bs-name');
             var selectedKeywordId = $(this).data('bs-value');
             $('#keywordDropdown').text(selectedKeyword);
             $('#keyword').val(selectedKeywordId);
         });
-
-        // Event listener for group dropdown change
-        $("#groupDropdown").change(function () {
-            var selectedGroupName = $('#group').val();
-            console.log(selectedGroupName);
-            var groupId = getGroupId(selectedGroupName);
+        
+        $('#group').change(function () {
+            var newGroupValue = $(this).val();
+            console.log('Group value changed to:', newGroupValue);
+            var groupId = getGroupId(newGroupValue);
             updateKeywordDropdownBasedOnGroup(groupId);
         });
 
-        $("#groupDropdown").trigger("change");
+        $("#group").trigger("change");
     });
 
-    // Function to make the AJAX call and update the keyword dropdown
     function updateKeywordDropdownBasedOnGroup(groupId) {
-        // Make AJAX call to your controller action
         console.log(`Calling /TabContent/Keywords for ${groupId}`);
         $.ajax({
             url: '/TabContent/Keywords',
@@ -112,27 +109,25 @@
     function updateKeywordDropdown(keywords) {
         var dropdownMenu = $("#keywordDropdown").next(".dropdown-menu");
         dropdownMenu.empty();
+        $('#keyword').val(0);
 
-        // Set a max-height for the dropdown menu
-        var maxHeight = 200; // Set the desired max-height in pixels
+
+        var maxHeight = 200;
         dropdownMenu.css({
             'max-height': maxHeight + 'px',
             'overflow-y': 'auto'
         });
 
         // Add default option to the dropdown menu
-        dropdownMenu.append('<a class="dropdown-item keyword" href="#" data-bs-value="All Keywords">All Broadcasters/Clubs</a>');
+        dropdownMenu.append('<a class="dropdown-item keyword" href="#" data-bs-value="0">All Broadcasters/Clubs</a>');
 
         // Add other options to the dropdown menu
         $.each(keywords, function (index, keyword) {
-            console.log(`appending ${keyword.name} to keywords dropdown`);
             dropdownMenu.append(`<a class="dropdown-item keyword" href="#" data-bs-value="${keyword.id}" data-bs-name="${keyword.name}">${keyword.name}</a>`);
         });
 
-        // Update the text of the button with the default option
         $('#keywordDropdown').text('All Broadcasters/Clubs');
     }
-
 
      function validateAndUpdateTables() {
         $('#countError').text('');

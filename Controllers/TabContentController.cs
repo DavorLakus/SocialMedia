@@ -8,10 +8,11 @@ using Newtonsoft.Json.Converters;
 public class TabContentController : Controller
 {
     private readonly IApiService _apiService;
-    private readonly int twoWeeksAgoTimestamp = (int)DateTimeOffset.UtcNow.AddDays(-14).ToUnixTimeSeconds();
-    private readonly int nowTimestamp = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-    private readonly int defaultCount = 100;
+    private readonly int TwoWeeksAgoTimestamp = (int)DateTimeOffset.UtcNow.AddDays(-14).ToUnixTimeSeconds();
+    private readonly int NowTimestamp = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    private readonly int DefaultCount = 100;
     private readonly int DFLGroupId = 215519;
+    private readonly int AllKeywords = 0;
     private List<PostTableViewModel> V1ViewModel = new List<PostTableViewModel>();
     private List<PostTableViewModel> V2ViewModel = new List<PostTableViewModel>();
 
@@ -28,14 +29,14 @@ public class TabContentController : Controller
 
     [HttpPost]
     public async Task<IActionResult> LoadData(int id) {
-        return await UpdateData(twoWeeksAgoTimestamp, nowTimestamp, defaultCount, DFLGroupId, id);
+        return await UpdateData(TwoWeeksAgoTimestamp, NowTimestamp, DefaultCount, DFLGroupId, AllKeywords,  id);
     }
 
     [HttpPost]
-    public async Task<IActionResult> UpdateData(int from, int to, int count, int groupId, int id)
+    public async Task<IActionResult> UpdateData(int from, int to, int count, int groupId, int keywordId, int id)
     {
         if (id == 1) {
-            var V1Mentions = await _apiService.GetV1Mentions(from, to, groupId, count);
+            var V1Mentions = await _apiService.GetV1Mentions(from, to, groupId, keywordId, count);
             V1ViewModel = new List<PostTableViewModel>();
             V1ViewModel = V1Mentions.Data.Response.Select(post => new PostTableViewModel
             {
@@ -60,7 +61,7 @@ public class TabContentController : Controller
             }).ToList();
             return Json(V1ViewModel);
         } else {
-            var V2Mentions = await _apiService.GetV2Mentions(from, to, groupId, count);
+            var V2Mentions = await _apiService.GetV2Mentions(from, to, groupId, keywordId, count);
             V2ViewModel = new List<PostTableViewModel>();
             V2ViewModel = V2Mentions.Mentions.Select(post => new PostTableViewModel
             {
