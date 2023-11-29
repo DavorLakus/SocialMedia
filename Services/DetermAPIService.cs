@@ -11,8 +11,9 @@ using Newtonsoft.Json.Converters;
 // IApiService.cs
 public interface IApiService
 {
-    Task<V1MentionsResponse> GetV1Mentions(long from, long to, int groupId, int count);
-    Task<V2MentionsResponse> GetV2Mentions(long from, long to, int groupId, int count);
+    Task<V1MentionsResponse> GetV1Mentions(long from, long to, int groupId, int keywordId, int count);
+    Task<V2MentionsResponse> GetV2Mentions(long from, long to, int groupId, int keywordId, int count);
+    Task<GroupResponse> GetKeywords(int groupId);
 }
 
 // ApiService.cs
@@ -27,12 +28,30 @@ public class ApiService : IApiService
         _httpClient = httpClient;
     }
 
-    public async Task<V1MentionsResponse> GetV1Mentions(long from, long to, int groupId, int count)
+    public async Task<GroupResponse> GetKeywords(int groupId)
     {
         try
         {
-            var requestUri = $"https://api.mediatoolkit.com/organizations/160996/groups/{groupId}/mentions?access_token={AccessToken}&from_time={from}&to_time={to}&sort=time&count={count}";
+            var requestUri = $"https://api.mediatoolkit.com/organizations/160996/groups/{groupId}?access_token={AccessToken}";
 
+            using (var response = await _httpClient.GetAsync(requestUri))
+            {
+                response.EnsureSuccessStatusCode();
+                var responseData = await response.Content.ReadAsAsync<GroupResponse>();
+                return responseData;
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new ApiException("Error occurred while fetching group keywords.", ex);
+        }
+    }
+
+    public async Task<V1MentionsResponse> GetV1Mentions(long from, long to, int groupId, int keywordId, int count)
+    {
+        try
+        {
+            var requestUri = $"https://api.mediatoolkit.com/organizations/160996/groups/{groupId}/{((keywordId == 0) ? "" : $"keywords/{keywordId}/")}mentions?access_token={AccessToken}&from_time={from}&to_time={to}&sort=time&count={count}";
             using (var response = await _httpClient.GetAsync(requestUri))
             {
                 response.EnsureSuccessStatusCode();
@@ -46,12 +65,13 @@ public class ApiService : IApiService
         }
     }
 
-     public async Task<V2MentionsResponse> GetV2Mentions(long from, long to, int groupId, int count)
+     public async Task<V2MentionsResponse> GetV2Mentions(long from, long to, int groupId, int keywordId, int count)
     {
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.mediatoolkit.com/v2/organization/160996/group/{groupId}/mentions/scroll?sourceToken={SourceToken}");
+            var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.mediatoolkit.com/v2/organization/160996/group/{groupId}/{((keywordId == 0) ? "" : $"keyword/{ keywordId}/")}mentions/scroll?sourceToken={SourceToken}");
             request.Headers.Add("Authorization", $"Bearer {AccessToken}");
+
             var content = new StringContent
             (
                $@"
