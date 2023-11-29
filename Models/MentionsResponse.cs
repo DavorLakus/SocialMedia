@@ -35,6 +35,7 @@ public class V1Posts
 
 public class V1Post : IPost
 {
+    [JsonProperty("comment_count")]
     public int CommentCount { get; set; }
     public List<string> Keywords { get; set; }
     public int Reach { get; set; }
@@ -48,29 +49,51 @@ public class V1Post : IPost
     public string Mention { get; set; }
     public string OriginalPhoto { get; set; }
     public double Score { get; set; }
+    [JsonProperty("from")]
     public string From { get; set; }
     public long Id { get; set; }
+    [JsonProperty("auto_sentiment")]
     public string AutoSentiment { get; set; }
     public long DatabaseInsertTime { get; set; }
+    [JsonProperty("keyword_name")]
     public string KeywordName { get; set; }
     public string Image { get; set; }
+    [JsonProperty("like_count")]
     public int LikeCount { get; set; }
     public List<string> Languages { get; set; }
     public string GroupName { get; set; }
     public string Author { get; set; }
     public string Photo { get; set; }
+    [JsonProperty("influence_score")]
     public int InfluenceScore { get; set; }
     public string Url { get; set; }
     public double Virality { get; set; }
+    [JsonProperty("share_count")]
     public int ShareCount { get; set; }
+    [JsonProperty("source_reach")]
     public int SourceReach { get; set; }
     public int KeywordId { get; set; }
     public int GroupId { get; set; }
     public string Domain { get; set; }
-    public List<string> TagFeedLocations { get; set; }
+    [JsonProperty("tag_feed_locations")]
+    public List<V1Tag>? TagFeedLocations { get; set; }
     public int Interaction { get; set; }
     public List<string> Locations { get; set; }
     public List<string> KeywordNames { get; set; }
+}
+
+public interface ITag
+{
+    public int CategoryId { get; set; }
+    public int TagId { get; set; }
+}
+
+public class V1Tag : ITag
+{
+    [JsonProperty("category_id")]
+    public int CategoryId { get; set; }
+    [JsonProperty("tag_id")]
+    public int TagId { get; set; }
 }
 
 public class V2Post : IPost
@@ -104,7 +127,7 @@ public class V2Post : IPost
     public int CommentCount { get; set; }
     public int ShareCount { get; set; }
     public string Description { get; set; }
-    public List<string> TagFeedLocations { get; set; }
+    public List<V2Tag>? TagFeedLocations { get; set; }
     public int KeywordId { get; set; }
     public string KeywordName { get; set; }
     public int GroupId { get; set; }
@@ -112,6 +135,11 @@ public class V2Post : IPost
     public List<string> KeywordNames { get; set; }
 }
 
+public class V2Tag : ITag
+{
+    public int CategoryId { get; set; }
+    public int TagId { get; set; }
+}
 
 public class PostTableViewModel
 {
@@ -122,6 +150,7 @@ public class PostTableViewModel
     public string Type { get; set; }
     public string From { get; set; }
     public string Url { get; set; }
+    public string KeywordName { get; set; }
     public int Reach { get; set; }
     public int SourceReach { get; set; }
     public int Interaction { get; set; }
@@ -129,6 +158,7 @@ public class PostTableViewModel
     public int LikeCount { get; set; }
     public int CommentCount { get; set; }
     public int ShareCount { get; set; }
+    public ITag? Tag { get; set; }
     public double Virality { get; set; }
     public string AutoSentiment { get; set; }
 }

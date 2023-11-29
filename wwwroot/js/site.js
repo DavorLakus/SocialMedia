@@ -25,3 +25,31 @@ function getGroupName(groupId) {
     }
     return null;
 }
+
+// Tag ID mapping
+var tagIdMapping = {
+    14549: "DFL YES",
+    14550: "NO DFL",
+    16800: "EPL YES",
+    16801: "NO EPL",
+    17234: "Handball",
+    17235: "Basketball",
+    17236: "Tischtennis",
+    17237: "Volleyball",
+    17238: "Hockey"
+};
+
+// Accessing tag name by ID
+function getTagName(tagId) {
+    return tagIdMapping[tagId] || null;
+}
+
+// Accessing tag ID by name
+function getTagId(tagName) {
+    for (var id in tagIdMapping) {
+        if (tagIdMapping.hasOwnProperty(id) && tagIdMapping[id] === tagName) {
+            return id;
+        }
+    }
+    return null;
+}
