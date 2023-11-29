@@ -13,6 +13,7 @@ public interface IApiService
 {
     Task<V1MentionsResponse> GetV1Mentions(long from, long to, int groupId, int count);
     Task<V2MentionsResponse> GetV2Mentions(long from, long to, int groupId, int count);
+    Task<GroupResponse> GetKeywords(int groupId);
 }
 
 // ApiService.cs
@@ -25,6 +26,25 @@ public class ApiService : IApiService
     public ApiService(HttpClient httpClient)
     {
         _httpClient = httpClient;
+    }
+
+    public async Task<GroupResponse> GetKeywords(int groupId)
+    {
+        try
+        {
+            var requestUri = $"https://api.mediatoolkit.com/organizations/160996/groups/{groupId}?access_token={AccessToken}";
+
+            using (var response = await _httpClient.GetAsync(requestUri))
+            {
+                response.EnsureSuccessStatusCode();
+                var responseData = await response.Content.ReadAsAsync<GroupResponse>();
+                return responseData;
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new ApiException("Error occurred while fetching group keywords.", ex);
+        }
     }
 
     public async Task<V1MentionsResponse> GetV1Mentions(long from, long to, int groupId, int count)
