@@ -151,6 +151,12 @@
                         }
                     }
                 },
+                { 
+                    data: 'keywordName',
+                    render: function (data, type, row, meta) {
+                        return `<div class="text-truncate" style="max-width: 150px;" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
+                    }
+                },
                 { data: 'reach' },
                 { data: 'sourceReach' },
                 { data: 'interaction' },

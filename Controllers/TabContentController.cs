@@ -40,7 +40,17 @@ public class TabContentController : Controller
                 Type = post.Type,
                 From = post.From,
                 Url = post.Url,
-                SourceReach = post.SourceReach
+                KeywordName = post.KeywordName,
+                Reach = post.Reach,
+                SourceReach = post.SourceReach,
+                Interaction = post.Interaction,
+                InfluenceScore = post.InfluenceScore,
+                LikeCount = post.LikeCount,
+                CommentCount = post.CommentCount,
+                ShareCount = post.ShareCount,
+                Virality = post.Virality,
+                AutoSentiment = post.AutoSentiment
+
             }).ToList();
             return Json(V1ViewModel);
         } else {
@@ -55,6 +65,7 @@ public class TabContentController : Controller
                 Type = post.Type,
                 From = post.From,
                 Url = post.Url,
+                KeywordName = post.KeywordName,
                 Reach = post.Reach,
                 SourceReach = post.SourceReach,
                 Interaction = post.Interaction,
