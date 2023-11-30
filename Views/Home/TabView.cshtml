@@ -22,6 +22,7 @@
         line-height: 1.5 !important;
         border-radius: 0.25rem !important;
     }
+    td { text-align: center; }
 
     .dt-buttons, .dataTables_filter { margin: 0rem 3rem 0.75rem 3rem; }
 </style>
@@ -87,10 +88,12 @@
         var groupId = getGroupId(group);
 
         var keywordId = $('#keyword').val();
-        console.log(`keyword ID: ${keywordId}`);
+
+        var tag = $('#tag').is(":checked");
+        console.log(`tag ${tag}`);
 
         // console.log(`setting up V${id}table calling request with from: ${from}, to: ${to}, group: ${groupId}, count ${count}`);
-        var data = (update) ? { from: from, to: to, count: count, groupId: groupId, keywordId: keywordId, id: id } : {id: id}; 
+        var data = (update) ? { from: from, to: to, count: count, groupId: groupId, keywordId: keywordId, tag: tag, id: id } : {id: id}; 
 
         $(`#v${id}table`).DataTable().destroy();
         $(`#v${id}table`).DataTable({
@@ -171,7 +174,12 @@
                         return `<div style="max-width: 150px; white-space: nowrap;">${(data != null) ? getTagName(data.tagId) : "N/A"}</div>`;
                     }
                 },
-                { data: 'virality' },
+                { 
+                    data: 'virality',
+                    render: function (data, type, row, meta) {
+                        return Math.round(data * 100) / 100;
+                    }
+                },
                 { data: 'autoSentiment' }
             ], rowCallback: function (row, data, index) {
                 if (data["url"] == null) {
