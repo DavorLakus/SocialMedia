@@ -1,8 +1,20 @@
 <style>
-    #v1table_wrapper, #v2table_wrapper { margin: 16px 0 15vh 0; }
-    .even-row { background-color: #ffffff !important;}
-    .odd-row { background-color: #f2f2f2 !important; }
-    .data-unavailable { background-color: #f09085 !important;}
+    #v1table_wrapper, #v2table_wrapper {
+        margin: 16px 0 15vh 0;
+    }
+
+    .even-row {
+        background-color: #ffffff !important;
+    }
+
+    .odd-row {
+        background-color: #f2f2f2 !important;
+    }
+
+    .data-unavailable {
+        background-color: #f09085 !important;
+    }
+
     .custom-tooltip {
         background-color: #fff;
         border: 1px solid #ddd;
@@ -22,13 +34,18 @@
         line-height: 1.5 !important;
         border-radius: 0.25rem !important;
     }
-    td { text-align: center; }
 
-    .dt-buttons, .dataTables_filter { margin: 0rem 3rem 0.75rem 3rem; }
+    td {
+        text-align: center;
+    }
+
+    .dt-buttons, .dataTables_filter {
+        margin: 0rem 3rem 0.75rem 3rem;
+    }
 </style>
 
 <div id="tab-view" class="tab-view">
-    <ul class="nav nav-tabs d-flex" style="font-weight: 600;" id="postsTabs">
+    <ul class="nav nav-tabs d-flex pl-5 pr-5" style="font-weight: 600;" id="postsTabs">
         <li class="p-2">Determ API:</li>
         <li class="nav-item">
             <a class="nav-link active" id="v1Tab" data-toggle="tab" href="#v1">V1</a>
@@ -48,40 +65,85 @@
     </div>
 </div>
 
+@*  Document setup  *@
 <script>
-    var isLoaded = false;
+    var v1Request = {};
+    var v2Request = {};
 
     $(document).ready(function () {
-        setupDetermTables();
-        
-        initTabs();
+        initTables();
+        bind();
     });
 
-    function initTabs() {
-         $('#postsTabs a').on('click', function (e) {
+    function initTables() {
+        initTable(1);
+        initTable(2);
+        updateTables();
+    }
+
+    function bind() {
+        $('#cancelRequestsButton').click(function () {
+            cancelRequests();
+        });
+
+        $('#postsTabs a').on('click', function (e) {
             e.preventDefault();
             $(this).tab('show');
         });
+
+        window.onscroll = function () {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+                // addRows();
+            }
+        };
     }
 
     function updateTables() {
-        $(`#v1table`).DataTable().destroy();
-        $(`#v2table`).DataTable().destroy();
-        setupDetermTables(true);
+        fetchTablesData(true);
     }
 
-    function setupDetermTables(update) {
-        setupDetermTable(1, update);
-        setupDetermTable(2, update);
+    function fetchTablesData(isUpdating) {
+        $('#loadingOverlay').show();
+
+        v1Request = fetchDataForTable(1, isUpdating);
+        v2Request = fetchDataForTable(2, isUpdating);
+
+        $.when(v1Request, v2Request).then(() => {
+            $('#loadingOverlay').hide();
+        });
     }
 
-    function setupDetermTable(id, update) {
+    function fetchDataForTable(id, isUpdating) {
+        var requestData = getFormValues(id, isUpdating);
+
+        return $.ajax({
+            url: `/TabContent/${(isUpdating) ? "Update" : "Load"}Data/`,
+            type: 'POST',
+            data: requestData,
+            dataType: 'json'
+        }).then((responseData) => {
+            populateRows(id, responseData);
+        });
+    }
+
+    function populateRows(id, data, shouldClear = true) {
+        if (shouldClear) {
+            $(`#v${id}table`).DataTable().clear();
+        }
+        $(`#v${id}table`).DataTable().rows.add(data).draw();
+    }
+
+</script>
+
+@* Helper functions *@
+<script>
+    function getFormValues(id, isUpdating) {
         var fromDate = $('#fromDate').val();
         var from = Math.floor(new Date(fromDate).getTime() / 1000);
-        
+
         var toDate = $('#toDate').val();
         var to = Math.floor(new Date(toDate).getTime() / 1000);
-        
+
         var count = $('#count').val();
 
         var group = $('#group').val();
@@ -90,111 +152,44 @@
         var keywordId = $('#keyword').val();
 
         var tag = $('#tag').is(":checked");
-        console.log(`tag ${tag}`);
 
-        // console.log(`setting up V${id}table calling request with from: ${from}, to: ${to}, group: ${groupId}, count ${count}`);
-        var data = (update) ? { from: from, to: to, count: count, groupId: groupId, keywordId: keywordId, tag: tag, id: id } : {id: id}; 
+        return (isUpdating)
+            ? {
+                from: from,
+                to: to,
+                count: count,
+                groupId: groupId,
+                keywordId: keywordId,
+                tag: tag,
+                id: id
+            }
+            : { id: id };
+    }
 
-        $(`#v${id}table`).DataTable().destroy();
+    function cancelRequests() {
+        // Check if v1Request and v2Request are jqXHR objects before calling abort
+        if (v1Request && typeof v1Request.abort === 'function') {
+            v1Request.abort();
+        }
+        if (v2Request && typeof v2Request.abort === 'function') {
+            v2Request.abort();
+        }
+        $('#loadingOverlay').hide();
+    }
+</script>
+
+@*  Table setup  *@
+<script>
+    function initTable(id) {
         $(`#v${id}table`).DataTable({
-            ajax: {
-                url: `/TabContent/${(update) ? "Update" : "Load"}Data/`,
-                type: 'POST',
-                data: data,
-                dataSrc: ''
-            },
-            columns: [
-                {
-                    data: 'id', render: function (data, type, row, meta) {
-                        return `<div data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
-                    }
-                },
-                {
-                    data: 'thumbnail',
-                    className: 'text-center',
-                    render: function (data, type, row, meta) {
-                        if (data != null) {
-                            return `<img src="${data}" style="max-width: 75px;" alt="N/A"/>`;
-                        } else {
-                            return "N/A"
-                        }
-                    }
-                },
-                {
-                    data: 'title',
-                    render: function (data, type, row, meta) {
-                        if (data != null) {
-                            return `<div class="text-truncate" style="max-width: 200px;" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
-                        } else {
-                            return "N/A"
-                        }
-                    }
-                },
-                {
-                    data: 'insertTime',
-                    render: function (data, type, row, meta) {
-                        return '<div style="white-space: nowrap;">' + moment.unix(data).format('YYYY.MM.DD HH:mm') + '</div>';
-                    }
-                },
-                { data: 'type' },
-                { data: 'from',
-                    render: function (data, type, row, meta) {
-                        if (data != null) {
-                            return `<div class="text-truncate" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
-                        } else { 
-                            return "N/A";
-                        }
-                    }
-                },
-                {
-                    data: 'url',
-                    render: function (data, type, row, meta) {
-                        if (data != null) {
-                            return `<div class="text-truncate" style="max-width: 200px;" data-toggle="tooltip" data-placement="top" title="${data}"><a href="${data}" target="_blank">${data}</a></div>`;
-                        } else {
-                            return "N/A"
-                        }
-                    }
-                },
-                { 
-                    data: 'keywordName',
-                    render: function (data, type, row, meta) {
-                        return `<div class="text-truncate" style="max-width: 150px;" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
-                    }
-                },
-                { data: 'reach' },
-                { data: 'sourceReach' },
-                { data: 'interaction' },
-                { data: 'influenceScore' },
-                { data: 'likeCount' },
-                { data: 'commentCount' },
-                { data: 'shareCount' },
-                { data: 'tag',
-                    render: function (data, type, row, meta) {
-                        return `<div style="max-width: 150px; white-space: nowrap;">${(data != null) ? getTagName(data.tagId) : "N/A"}</div>`;
-                    }
-                },
-                { 
-                    data: 'virality',
-                    render: function (data, type, row, meta) {
-                        return Math.round(data * 100) / 100;
-                    }
-                },
-                { data: 'autoSentiment' }
-            ], rowCallback: function (row, data, index) {
-                if (data["url"] == null) {
-                    $(row).addClass('data-unavailable');
-                } else if (index % 2 == 0) {
-                    $(row).addClass('even-row');
-                } else {
-                    $(row).addClass('odd-row');
-                }
-            },
+            columns: generateColumns(),
+            rowCallback: setupRowBackgrounds(),
             lengthChange: false,
+            scrollX: true,  // Enable horizontal scrolling
+            paging: false,
             info: true,
             order: [[3, 'desc']],
             dom: 'Bfrtip',
-            paging: false,
             buttons: [
                 {
                     extend: 'excelHtml5',
@@ -202,31 +197,103 @@
                     className: 'export-button',
                     title: `${fromDate} -- ${toDate} V${id} - ${group}`
                 }
-            ],
-            initComplete: function (settings, json) {
-                // console.log(json);
-                isLoaded = true;
-            }
+            ]
         });
-
-         // Initialize tooltips
-        $('[data-toggle="tooltip"]').tooltip({
-            animation: true,
-            delay: { "show": 0.0, "hide": 0.3 },
-            html: true,
-        });
-
-        window.onscroll = function () {
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight &&
-                isLoaded) {
-                addRows();
-            }
-        };
     }
 
-    function addRows() {
-        console.log('Reached the end of the page');
-        var currentCount = $('#count').val();
-        var increment = currentCount < 100 ? 10 : 100;
+    function generateColumns() {
+        return [
+            {
+                data: 'id', render: function (data, type, row, meta) {
+                    return `<div data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
+                }
+            },
+            {
+                data: 'thumbnail',
+                className: 'text-center',
+                render: function (data, type, row, meta) {
+                    if (data != null) {
+                        return `<img src="${data}" style="max-width: 75px;" alt="N/A"/>`;
+                    } else {
+                        return "N/A"
+                    }
+                }
+            },
+            {
+                data: 'title',
+                render: function (data, type, row, meta) {
+                    if (data != null) {
+                        return `<div class="text-truncate" style="max-width: 200px;" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
+                    } else {
+                        return "N/A"
+                    }
+                }
+            },
+            {
+                data: 'insertTime',
+                render: function (data, type, row, meta) {
+                    return '<div style="white-space: nowrap;">' + moment.unix(data).format('YYYY.MM.DD HH:mm') + '</div>';
+                }
+            },
+            { data: 'type' },
+            {
+                data: 'from',
+                render: function (data, type, row, meta) {
+                    if (data != null) {
+                        return `<div class="text-truncate" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
+                    } else {
+                        return "N/A";
+                    }
+                }
+            },
+            {
+                data: 'url',
+                render: function (data, type, row, meta) {
+                    if (data != null) {
+                        return `<div class="text-truncate" style="max-width: 200px;" data-toggle="tooltip" data-placement="top" title="${data}"><a href="${data}" target="_blank">${data}</a></div>`;
+                    } else {
+                        return "N/A"
+                    }
+                }
+            },
+            {
+                data: 'keywordName',
+                render: function (data, type, row, meta) {
+                    return `<div class="text-truncate" style="max-width: 150px;" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
+                }
+            },
+            { data: 'reach' },
+            { data: 'sourceReach' },
+            { data: 'interaction' },
+            { data: 'influenceScore' },
+            { data: 'likeCount' },
+            { data: 'commentCount' },
+            { data: 'shareCount' },
+            {
+                data: 'tag',
+                render: function (data, type, row, meta) {
+                    return `<div style="max-width: 150px; white-space: nowrap;">${(data != null) ? getTagName(data.tagId) : "N/A"}</div>`;
+                }
+            },
+            {
+                data: 'virality',
+                render: function (data, type, row, meta) {
+                    return Math.round(data * 100) / 100;
+                }
+            },
+            { data: 'autoSentiment' }
+        ];
+    }
+
+    function setupRowBackgrounds() {
+        return function (row, data, index) {
+            if (data["url"] == null) {
+                $(row).addClass('data-unavailable');
+            } else if (index % 2 == 0) {
+                $(row).addClass('even-row');
+            } else {
+                $(row).addClass('odd-row');
+            }
+        }
     }
 </script>

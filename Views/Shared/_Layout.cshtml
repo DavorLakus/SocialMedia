@@ -47,6 +47,13 @@
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link" style="color:#f1f1f1; font-weight:500; font-size:medium;" asp-area="" asp-controller="Home" asp-action="About">About</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </nav>
     </header>
@@ -57,8 +64,18 @@
         </div>
     </h6>
 
-    <div class="container">
+    <div class="container-fluid p-0">
         <main role="main" class="pb-3">
+            <div id="loadingOverlay" class="loading-overlay">
+                <div class="spinner-container">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <button id="cancelRequestsButton" class="btn btn-danger">Cancel requests...</button>
+                </div>
+            </div>
+
+
             @RenderBody()
         </main>
     </div>
