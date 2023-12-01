@@ -21,7 +21,7 @@
             <label for="group">Group</label>
             <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="groupDropdown"
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 </button>
                 <div class="dropdown-menu" aria-labelledby="groupDropdown">
                     <a class="dropdown-item group" href="#" data-bs-value="DFL">DFL</a>
@@ -76,6 +76,13 @@
 
         $('#groupDropdown').text($('#group').val());
 
+        bindGroups();
+        bindTagToggle();
+    });
+
+
+
+    function bindGroups() {
         $('.group').on('click', function () {
             var selectedValue = $(this).data('bs-value');
             $('#groupDropdown').text(selectedValue);
@@ -83,24 +90,23 @@
             $("#group").trigger("change");
         });
 
-        $(document).on('click', '.keyword', function () {
-            var selectedKeyword = $(this).data('bs-name');
-            var selectedKeywordId = $(this).data('bs-value');
-            $('#keywordDropdown').text(selectedKeyword);
-            $('#keyword').val(selectedKeywordId);
-        });
-        
         $('#group').change(function () {
             var newGroupValue = $(this).val();
-            console.log('Group value changed to:', newGroupValue);
             var groupId = getGroupId(newGroupValue);
-
             showHideTag(groupId);
             updateKeywordDropdownBasedOnGroup(groupId);
         });
 
         $("#group").trigger("change");
-    });
+    }
+
+    function bindTagToggle() {
+        $('#tag').on('click', function() {
+            if ($(this).is(":checked")) {
+                $('#count').val(10);
+            }
+        });
+    }
 
     function showHideTag(groupId) {
         if (groupId === groupIdMapping.DFL || groupId === groupIdMapping.EPL) {
@@ -147,16 +153,24 @@
         });
 
         $('#keywordDropdown').text('All Broadcasters/Clubs');
+
+        $('.keyword').on('click', function () {
+            var selectedKeyword = $(this).data('bs-name');
+            var selectedKeywordId = $(this).data('bs-value');
+            console.log(`keyword ${selectedKeyword} click`);
+            $('#keywordDropdown').text(selectedKeyword);
+            $('#keyword').val(selectedKeywordId);
+        });
     }
 
-     function validateAndUpdateTables() {
+    function validateAndUpdateTables() {
         $('#countError').text('');
         $('#dateFromError').text('');
 
         var count = $('#count').val();
-        if (isNaN(count) || count <= 10) {
-            $('#countError').text('Count must be greater than 10.');
-            return; 
+        if (isNaN(count) || count < 1) {
+            $('#countError').text('Count must be greater than 0.');
+            return;
         }
 
         var fromDate = $('#fromDate').val();
