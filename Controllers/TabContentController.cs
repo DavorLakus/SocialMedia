@@ -43,7 +43,7 @@ public class TabContentController : Controller
         int tagId = tag ? getTagId(groupId) : 0;
         if (id == 1)
         {
-            return Json(await _apiService.GetV1Mentions(from, to, groupId, keywordId, tagId, count));
+            return Json(await _apiService.GetV1Mentions(from, to, groupId, keywordId, tagId, count, 0));
         }
         else
         {
@@ -51,13 +51,24 @@ public class TabContentController : Controller
         }
     }
 
+    [HttpPost]
+    public async Task<IActionResult> LoadGradualV1Data(int from, int to, int count, int groupId, int keywordId, bool tag, int id, int page)
+    {
+        return Json(await _apiService.GetV1Mentions(from, to, groupId, keywordId, 0, count, page * count));
+    }
+
     private int getTagId(int groupId)
     {
-        if (groupId == DFLGroupId) {
+        if (groupId == DFLGroupId)
+        {
             return DFLTagId;
-        } else if (groupId == EPLGroupId) {
+        }
+        else if (groupId == EPLGroupId)
+        {
             return EPLTagId;
-        } else {
+        }
+        else
+        {
             return 0;
         }
     }

@@ -48,19 +48,19 @@
     <ul class="nav nav-tabs d-flex pl-5 pr-5" style="font-weight: 600;" id="postsTabs">
         <li class="p-2">Determ API:</li>
         <li class="nav-item">
-            <a class="nav-link active" id="v1Tab" data-toggle="tab" href="#v1">V1</a>
+            <button class="nav-link active" id="v1Tab" data-bs-toggle="tab" data-bs-target="#v1">V1</button>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="v2Tab" data-toggle="tab" href="#v2">V2</a>
+            <button class="nav-link" id="v2Tab" data-bs-toggle="tab" data-bs-target="#v2">V2</button>
         </li>
     </ul>
 
     <div class="tab-content">
         <div class="tab-pane fade show active" id="v1">
-            @Html.Partial("TabContent", 1)
+            @Html.Partial("DetermTable", 1)
         </div>
         <div class="tab-pane fade" id="v2">
-            @Html.Partial("TabContent", 2)
+            @Html.Partial("DetermTable", 2)
         </div>
     </div>
 </div>
@@ -69,6 +69,12 @@
 <script>
     var v1Request = {};
     var v2Request = {};
+    var isFetchingGradualRequest = false;
+    var v1DataCount = 0;
+    const DFLTagId = 14549;
+    const EPLTagId = 16800;
+    const EPLGroupId = 230416;
+    const DFLGroupId = 215519;
 
     $(document).ready(function () {
         initTables();
@@ -86,9 +92,11 @@
             cancelRequests();
         });
 
-        $('#postsTabs a').on('click', function (e) {
+        $('#postsTabs button').on('click', function (e) {
             e.preventDefault();
+
             $(this).tab('show');
+            $(this).blur();
         });
 
         window.onscroll = function () {
@@ -96,21 +104,87 @@
                 // addRows();
             }
         };
+
+        // Listen for Bootstrap tab change
+        document.querySelectorAll('button[data-bs-toggle="tab"]').forEach((el) => {
+            el.addEventListener('shown.bs.tab', () => {
+                console.log("tab change");
+                DataTable.tables({ visible: true, api: true }).columns.adjust();
+            });
+        });
     }
 
     function updateTables() {
+        $(`#v1table`).DataTable().clear().draw();
+        $(`#v2table`).DataTable().clear().draw();
         fetchTablesData(true);
     }
 
     function fetchTablesData(isUpdating) {
         $('#loadingOverlay').show();
+        var requestData = getFormValues(1, true);
 
-        v1Request = fetchDataForTable(1, isUpdating);
-        v2Request = fetchDataForTable(2, isUpdating);
+        if (false) {
+            fetchGradualV1DataForTable(0, 0, requestData);
+            v2request = fetchDataForTable(2, isUpdating);
+        } else {
+            v1Request = fetchDataForTable(1, isUpdating);
+            v2Request = fetchDataForTable(2, isUpdating);
 
-        $.when(v1Request, v2Request).then(() => {
-            $('#loadingOverlay').hide();
+            $.when(v1Request, v2Request).then(() => {
+                $('#loadingOverlay').hide();
+            });
+        }
+    }
+
+    function fetchGradualV1DataForTable(page, offset, requestData) {
+        requestData.page = page;
+        var actualRequestData = requestData;
+        actualRequestData.count = 1000;
+        isFetchingGradualRequest = true;
+
+        console.log(`==========>          fetching   page: ${page}, currently found: ${offset}  `);
+        v1Request = $.ajax({
+            url: `/TabContent/LoadGradualV1Data/`,
+            type: 'POST',
+            data: actualRequestData,
+            dataType: 'json'
+        }).then((responseData) => {
+            var tagFilteredResponseData = responseData.filter((viewModel) => {
+                if (viewModel.tag != null) {
+                    console.log(`has tag: ${viewModel.tag.tagId}`);
+
+                    return viewModel.tag.tagId == getTag(requestData.groupId);
+                }
+                return false;
+            });
+
+            var totalResults = offset + tagFilteredResponseData.length;
+            if (totalResults > requestData.count) {
+                tagFilteredResponseData = tagFilteredResponseData.slice(0, requestData.count - offset);
+            }
+
+            populateRows(requestData.id, tagFilteredResponseData, page == 0);
+            if (totalResults < requestData.count && isFetchingGradualRequest) {
+                fetchGradualV1DataForTable(page + 1, offset + totalResults, requestData);
+            } else {
+                isFetchingGradualRequest = false;
+                $('#loadingOverlay').hide();
+            }
         });
+    }
+
+    function getTag(groupId) {
+        console.log(`getTagId(groupId): group: ${groupId} DFL: ${DFLGroupId}`);
+        if (groupId == DFLGroupId) {
+            return DFLTagId;
+        }
+        else if (groupId == EPLGroupId) {
+            return EPLTagId;
+        }
+        else {
+            return 0;
+        }
     }
 
     function fetchDataForTable(id, isUpdating) {
@@ -122,7 +196,11 @@
             data: requestData,
             dataType: 'json'
         }).then((responseData) => {
-            populateRows(id, responseData);
+            if (responseData.value) {
+                populateRows(id, responseData.value);
+            } else {
+                alert(responseData.error);
+            }
         });
     }
 
@@ -167,13 +245,14 @@
     }
 
     function cancelRequests() {
-        // Check if v1Request and v2Request are jqXHR objects before calling abort
         if (v1Request && typeof v1Request.abort === 'function') {
             v1Request.abort();
         }
         if (v2Request && typeof v2Request.abort === 'function') {
             v2Request.abort();
         }
+
+        isFetchingGradualRequest = false;
         $('#loadingOverlay').hide();
     }
 </script>
@@ -184,8 +263,8 @@
         $(`#v${id}table`).DataTable({
             columns: generateColumns(),
             rowCallback: setupRowBackgrounds(),
-            lengthChange: false,
-            scrollX: true,  // Enable horizontal scrolling
+            lengthChange: true,
+            scrollX: true,
             paging: false,
             info: true,
             order: [[3, 'desc']],
@@ -262,19 +341,22 @@
                     return `<div class="text-truncate" style="max-width: 150px;" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
                 }
             },
-            { data: 'reach' },
-            { data: 'sourceReach' },
-            { data: 'interaction' },
-            { data: 'influenceScore' },
-            { data: 'likeCount' },
-            { data: 'commentCount' },
-            { data: 'shareCount' },
             {
                 data: 'tag',
                 render: function (data, type, row, meta) {
                     return `<div style="max-width: 150px; white-space: nowrap;">${(data != null) ? getTagName(data.tagId) : "N/A"}</div>`;
                 }
             },
+            { data: 'viewCount' },
+            { data: 'reach' },
+            { data: 'sourceReach' },
+            { data: 'interaction' },
+            { data: 'influenceScore' },
+            { data: 'authorFollowerCount' },
+            { data: 'likeCount' },
+            { data: 'commentCount' },
+            { data: 'shareCount' },
+            { data: 'duration' },
             {
                 data: 'virality',
                 render: function (data, type, row, meta) {
