@@ -69,6 +69,8 @@
 <script>
     var v1Request = {};
     var v2Request = {};
+    var loading = false;
+    var currentOffset = 0;
 
     $(document).ready(function () {
         initTables();
@@ -93,9 +95,13 @@
             $(this).blur();
         });
 
-        window.onscroll = function () {
+        window.onscroll = () => {
             if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-                // addRows();
+                if (v1Request && typeof v1Request.state === 'function') {
+                    if (v1Request.state() == 'resolved' && !loading) {
+                        loadMoreRows();
+                    }
+                }
             }
         };
 
@@ -113,19 +119,20 @@
         fetchTablesData(true);
     }
 
-    function fetchTablesData(isUpdating) {
-        $('#loadingOverlay').show();
-        var requestData = getFormValues(1, true);
+    function fetchTablesData(isUpdating, shouldLoadMore) {
+        toggleLoading(true);
 
-        v1Request = fetchDataForTable(1, isUpdating);
-        v2Request = fetchDataForTable(2, isUpdating);
+        currentOffset = shouldLoadMore ? currentOffset + parseInt(getFormValues(1, true).count) : 0;
+
+        v1Request = fetchDataForTable(1, isUpdating, shouldLoadMore);
+        v2Request = fetchDataForTable(2, isUpdating, shouldLoadMore);
 
         $.when(v1Request, v2Request).then(() => {
-            $('#loadingOverlay').hide();
+            toggleLoading(false);
         });
     }
 
-    function fetchDataForTable(id, isUpdating) {
+    function fetchDataForTable(id, isUpdating, shouldLoadMore) {
         var requestData = getFormValues(id, isUpdating);
 
         return $.ajax({
@@ -135,7 +142,7 @@
             dataType: 'json'
         }).then((responseData) => {
             if (responseData.value) {
-                populateRows(id, responseData.value);
+                populateRows(id, responseData.value, !shouldLoadMore);
             } else {
                 alert(responseData.error);
             }
@@ -177,7 +184,8 @@
                 groupId: groupId,
                 keywordId: keywordId,
                 tag: tag,
-                id: id
+                id: id,
+                offset: currentOffset
             }
             : { id: id };
     }
@@ -190,8 +198,12 @@
             v2Request.abort();
         }
 
-        isFetchingGradualRequest = false;
-        $('#loadingOverlay').hide();
+        toggleLoading(false);
+    }
+
+    function toggleLoading(loading) {
+        this.loading = loading;
+        loading ? $('#loadingOverlay').show() : $('#loadingOverlay').hide();
     }
 </script>
 
@@ -203,7 +215,6 @@
             rowCallback: setupRowBackgrounds(),
             lengthChange: true,
             scrollX: true,
-            scrollY: '70vh',
             paging: false,
             info: true,
             order: [[3, 'desc']],
@@ -217,17 +228,12 @@
                 }
             ]
         });
+    }
 
-        $(`#v${id}table`).on('scroll', () => {
-            // Check if the user has scrolled to the bottom
-            var table = $(`#v${id}table`).DataTable();
-            var info = table.page.info();
-            var isAtBottom = (info.end >= info.recordsTotal);
-            console.log("scrolling");
-            if (isAtBottom) {
-                console.log('User has scrolled to the bottom of the DataTable.');
-            }
-        });
+    function loadMoreRows() {
+        console.log("Reached table bottom...");
+        toggleLoading(true);
+        fetchTablesData(true, true);
     }
 
     function generateColumns() {

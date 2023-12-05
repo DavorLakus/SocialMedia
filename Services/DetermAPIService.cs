@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 public interface IApiService
 {
     Task<Result<List<PostTableViewModel>, string>> GetV1Mentions(long from, long to, int groupId, int keywordId, int tagId, int count, int offset);
-    Task<Result<List<PostTableViewModel>, string>> GetV2Mentions(long from, long to, int groupId, int keywordId, int tagId, int count);
+    Task<Result<List<PostTableViewModel>, string>> GetV2Mentions(long from, long to, int groupId, int keywordId, int tagId, int count, int offset);
     Task<GroupResponse> GetKeywords(int groupId);
 }
 
@@ -62,11 +62,12 @@ public class ApiService : IApiService
                         NamingStrategy = new SnakeCaseNamingStrategy()
                     }
                 });
-                return Result<List<PostTableViewModel>, string>.Success(responseData.Data.Response.Select(p => new PostTableViewModel(p)).ToList());
+                return Result<List<PostTableViewModel>, string>.Success(success: responseData.Data.Response.Select(p => new PostTableViewModel(p)).ToList());
             }
         }
         catch (HttpRequestException ex)
         {
+            Console.WriteLine($"===============================>>> V1 API ERROR  {ex.ToString()}  <<<=========================================");
             throw new ApiException("Error occurred while fetching V1 mentions.", ex);
         }
     }
@@ -122,8 +123,9 @@ public class ApiService : IApiService
     }
 
 
-     public async Task<Result<List<PostTableViewModel>, string>> GetV2Mentions(long from, long to, int groupId, int keywordId, int tagId, int count)
+     public async Task<Result<List<PostTableViewModel>, string>> GetV2Mentions(long from, long to, int groupId, int keywordId, int tagId, int count, int offset = 0)
     {
+        if (offset == 0) { ScrollToken = ""; }
         try
         {
             var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.mediatoolkit.com/v2/organization/160996/group/{groupId}/{((keywordId == 0) ? "" : $"keyword/{ keywordId}/")}mentions/scroll?sourceToken={SourceToken}");
@@ -174,7 +176,7 @@ public class ApiService : IApiService
                         NamingStrategy = new CamelCaseNamingStrategy()
                     }
                 });
-
+                ScrollToken = responseData.ScrollToken;
 
                 return Result<List<PostTableViewModel>, string>.Success(responseData.Mentions.Select(p => new PostTableViewModel(p)).ToList());
             }
