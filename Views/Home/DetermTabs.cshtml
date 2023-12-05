@@ -55,7 +55,7 @@
         </li>
     </ul>
 
-    <div class="tab-content">
+    <div class="tab-content ml-3">
         <div class="tab-pane fade show active" id="v1">
             @Html.Partial("DetermTable", 1)
         </div>
@@ -69,12 +69,6 @@
 <script>
     var v1Request = {};
     var v2Request = {};
-    var isFetchingGradualRequest = false;
-    var v1DataCount = 0;
-    const DFLTagId = 14549;
-    const EPLTagId = 16800;
-    const EPLGroupId = 230416;
-    const DFLGroupId = 215519;
 
     $(document).ready(function () {
         initTables();
@@ -108,7 +102,6 @@
         // Listen for Bootstrap tab change
         document.querySelectorAll('button[data-bs-toggle="tab"]').forEach((el) => {
             el.addEventListener('shown.bs.tab', () => {
-                console.log("tab change");
                 DataTable.tables({ visible: true, api: true }).columns.adjust();
             });
         });
@@ -124,74 +117,19 @@
         $('#loadingOverlay').show();
         var requestData = getFormValues(1, true);
 
-        if (false) {
-            fetchGradualV1DataForTable(0, 0, requestData);
-            v2request = fetchDataForTable(2, isUpdating);
-        } else {
-            v1Request = fetchDataForTable(1, isUpdating);
-            v2Request = fetchDataForTable(2, isUpdating);
+        v1Request = fetchDataForTable(1, isUpdating);
+        v2Request = fetchDataForTable(2, isUpdating);
 
-            $.when(v1Request, v2Request).then(() => {
-                $('#loadingOverlay').hide();
-            });
-        }
-    }
-
-    function fetchGradualV1DataForTable(page, offset, requestData) {
-        requestData.page = page;
-        var actualRequestData = requestData;
-        actualRequestData.count = 1000;
-        isFetchingGradualRequest = true;
-
-        console.log(`==========>          fetching   page: ${page}, currently found: ${offset}  `);
-        v1Request = $.ajax({
-            url: `/TabContent/LoadGradualV1Data/`,
-            type: 'POST',
-            data: actualRequestData,
-            dataType: 'json'
-        }).then((responseData) => {
-            var tagFilteredResponseData = responseData.filter((viewModel) => {
-                if (viewModel.tag != null) {
-                    console.log(`has tag: ${viewModel.tag.tagId}`);
-
-                    return viewModel.tag.tagId == getTag(requestData.groupId);
-                }
-                return false;
-            });
-
-            var totalResults = offset + tagFilteredResponseData.length;
-            if (totalResults > requestData.count) {
-                tagFilteredResponseData = tagFilteredResponseData.slice(0, requestData.count - offset);
-            }
-
-            populateRows(requestData.id, tagFilteredResponseData, page == 0);
-            if (totalResults < requestData.count && isFetchingGradualRequest) {
-                fetchGradualV1DataForTable(page + 1, offset + totalResults, requestData);
-            } else {
-                isFetchingGradualRequest = false;
-                $('#loadingOverlay').hide();
-            }
+        $.when(v1Request, v2Request).then(() => {
+            $('#loadingOverlay').hide();
         });
-    }
-
-    function getTag(groupId) {
-        console.log(`getTagId(groupId): group: ${groupId} DFL: ${DFLGroupId}`);
-        if (groupId == DFLGroupId) {
-            return DFLTagId;
-        }
-        else if (groupId == EPLGroupId) {
-            return EPLTagId;
-        }
-        else {
-            return 0;
-        }
     }
 
     function fetchDataForTable(id, isUpdating) {
         var requestData = getFormValues(id, isUpdating);
 
         return $.ajax({
-            url: `/TabContent/${(isUpdating) ? "Update" : "Load"}Data/`,
+            url: `/DetermContent/${(isUpdating) ? "Update" : "Load"}Data/`,
             type: 'POST',
             data: requestData,
             dataType: 'json'
@@ -265,6 +203,7 @@
             rowCallback: setupRowBackgrounds(),
             lengthChange: true,
             scrollX: true,
+            scrollY: '70vh',
             paging: false,
             info: true,
             order: [[3, 'desc']],
@@ -277,6 +216,17 @@
                     title: `${fromDate} -- ${toDate} V${id} - ${group}`
                 }
             ]
+        });
+
+        $(`#v${id}table`).on('scroll', () => {
+            // Check if the user has scrolled to the bottom
+            var table = $(`#v${id}table`).DataTable();
+            var info = table.page.info();
+            var isAtBottom = (info.end >= info.recordsTotal);
+            console.log("scrolling");
+            if (isAtBottom) {
+                console.log('User has scrolled to the bottom of the DataTable.');
+            }
         });
     }
 

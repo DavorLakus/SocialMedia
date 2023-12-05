@@ -13,8 +13,8 @@ public interface IApiService
 public class ApiService : IApiService
 {
     private readonly HttpClient _httpClient;
-    private readonly string AccessToken = "3d6u7eqx5anw9v72dxkr9imz8vwkl3ye73dsgv427q3lu7npua";
-    private readonly string SourceToken = "130fd26e789be8219d0a52bc937f082e";
+    private const string AccessToken = "3d6u7eqx5anw9v72dxkr9imz8vwkl3ye73dsgv427q3lu7npua";
+    private const string SourceToken = "130fd26e789be8219d0a52bc937f082e";
     private string ScrollToken = "";
     private bool areV1TaggedPostsFetched = true;
     public ApiService(HttpClient httpClient)
@@ -176,14 +176,11 @@ public class ApiService : IApiService
                 });
 
 
-                    //.ReadAsAsync<V2MentionsResponse>();
                 return Result<List<PostTableViewModel>, string>.Success(responseData.Mentions.Select(p => new PostTableViewModel(p)).ToList());
             }
         }
         catch (HttpRequestException ex)
         {
-            // Handle exceptions (log, rethrow, etc.)
-            // You might want to define a custom exception type for better error handling
             throw new ApiException("Error occurred while fetching V2 mentions.", ex);
         }
     }

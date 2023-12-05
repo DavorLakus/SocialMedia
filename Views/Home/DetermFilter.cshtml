@@ -1,5 +1,5 @@
 
-<form id="filterForm" class="m-3">
+<form id="filterForm" class="ml-3 mr-3">
     <div class="row d-flex justify-content-center ml-3 mr-3">
         <div class="col-4 mb-3">
             <label for="fromDate">From Date</label>
@@ -118,7 +118,6 @@
     }
 
     function updateKeywordDropdownBasedOnGroup(groupId) {
-        console.log(`Calling /TabContent/Keywords for ${groupId}`);
         $.ajax({
             url: '/TabContent/Keywords',
             method: 'GET',

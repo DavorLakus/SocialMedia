@@ -21,10 +21,6 @@ html {
   min-height: 100%;
 }
 
-body {
-  margin-bottom: 60px;
-}
-
 .loading-overlay {
     position: fixed; /* Use fixed position for the overlay */
     top: 0;
