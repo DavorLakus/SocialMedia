@@ -55,7 +55,7 @@
         </li>
     </ul>
 
-    <div class="tab-content ml-3">
+    <div class="tab-content ml-3 mr-3">
         <div class="tab-pane fade show active" id="v1">
             @Html.Partial("DetermTable", 1)
         </div>
@@ -63,6 +63,20 @@
             @Html.Partial("DetermTable", 2)
         </div>
     </div>
+</div>
+
+<!-- Add this div to your HTML outside the existing <div id="tab-view" class="tab-view"> -->
+<div id="sticky-tabs" style="display: none; top: 0px; background-color: white; position: fixed; width: 100vw; overflow: hidden; z-index: 2;">
+    <!-- Copy the content of the original tabs here -->
+    <ul class="nav nav-tabs d-flex pl-5 pr-5 mb-2 pt-2" style="font-weight: 600;" id="stickyPostsTabs">
+        <li class="p-2">Determ API:</li>
+        <li class="nav-item">
+            <button class="nav-link active" id="v1StickyTab" data-bs-toggle="tab" data-bs-target="#v1">V1</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="v2StickyTab" data-bs-toggle="tab" data-bs-target="#v2">V2</button>
+        </li>
+    </ul>
 </div>
 
 @*  Document setup  *@
@@ -73,6 +87,7 @@
     $(document).ready(function () {
         initTables();
         bind();
+        bindTabs();
     });
 
     function initTables() {
@@ -80,6 +95,8 @@
         initTable(2);
         updateTables();
     }
+
+    var areTabsInView = true;
 
     function bind() {
         $('#cancelRequestsButton').click(function () {
@@ -93,10 +110,23 @@
             $(this).blur();
         });
 
+        // Add this event listener to check the scroll position and show/hide the sticky tabs
         window.onscroll = function () {
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-                // addRows();
+            var tabsPosition = document.getElementById('postsTabs').getBoundingClientRect();
+
+            // If the original tabs are not in view and the sticky tabs are hidden, show the sticky tabs
+            if (tabsPosition.bottom <= 0 && !areTabsInView) {
+                $('#sticky-tabs').show();
+                areTabsInView = true;
             }
+
+            // If the original tabs are in view and the sticky tabs are shown, hide the sticky tabs
+            if (tabsPosition.bottom > 0 && areTabsInView) {
+                $('#sticky-tabs').hide();
+                areTabsInView = false;
+            }
+
+            // The rest of your existing scroll logic...
         };
 
         // Listen for Bootstrap tab change
@@ -203,7 +233,6 @@
             rowCallback: setupRowBackgrounds(),
             lengthChange: true,
             scrollX: true,
-            scrollY: '70vh',
             paging: false,
             info: true,
             order: [[3, 'desc']],
@@ -216,6 +245,9 @@
                     title: `${fromDate} -- ${toDate} V${id} - ${group}`
                 }
             ]
+        });
+        new $.fn.dataTable.FixedHeader(`#v${id}table`,{
+            headerOffset: $('#sticky-tabs').height()
         });
 
         $(`#v${id}table`).on('scroll', () => {

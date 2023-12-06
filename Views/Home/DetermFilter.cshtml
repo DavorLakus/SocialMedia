@@ -119,7 +119,7 @@
 
     function updateKeywordDropdownBasedOnGroup(groupId) {
         $.ajax({
-            url: '/TabContent/Keywords',
+            url: '/DetermContent/Keywords',
             method: 'GET',
             data: { groupId: groupId },
             success: function (response) {

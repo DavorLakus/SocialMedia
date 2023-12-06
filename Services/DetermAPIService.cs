@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 public interface IApiService
 {
     Task<Result<List<PostTableViewModel>, string>> GetV1Mentions(long from, long to, int groupId, int keywordId, int tagId, int count, int offset);
-    Task<Result<List<PostTableViewModel>, string>> GetV2Mentions(long from, long to, int groupId, int keywordId, int tagId, int count);
+    Task<Result<List<PostTableViewModel>, string>> GetV2Mentions(long from, long to, int groupId, int keywordId, int tagId, int count, int offset);
     Task<GroupResponse> GetKeywords(int groupId);
 }
 
@@ -122,7 +122,7 @@ public class ApiService : IApiService
     }
 
 
-     public async Task<Result<List<PostTableViewModel>, string>> GetV2Mentions(long from, long to, int groupId, int keywordId, int tagId, int count)
+     public async Task<Result<List<PostTableViewModel>, string>> GetV2Mentions(long from, long to, int groupId, int keywordId, int tagId, int count, int offset = 0)
     {
         try
         {
