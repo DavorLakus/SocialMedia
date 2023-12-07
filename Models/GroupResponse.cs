@@ -25,7 +25,7 @@ public class Keyword
     }
 
     // Function to remove the GUID part using regex
-    private string RemoveGuid(string input)
+    public static string RemoveGuid(string input)
     {
         // Define a regex pattern to match the GUID part in brackets
         string pattern = @"\s*\(\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b\)\s*";

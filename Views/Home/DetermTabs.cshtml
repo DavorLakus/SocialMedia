@@ -87,7 +87,6 @@
     $(document).ready(function () {
         initTables();
         bind();
-        bindTabs();
     });
 
     function initTables() {
@@ -177,6 +176,8 @@
             $(`#v${id}table`).DataTable().clear();
         }
         $(`#v${id}table`).DataTable().rows.add(data).draw();
+        document.getElementById(`tab-view`).scrollIntoView({behavior : 'smooth', block: 'nearest'});
+        // $(`#tab-view`).scrollIntoView('smooth');
     }
 
 </script>
@@ -233,6 +234,7 @@
             rowCallback: setupRowBackgrounds(),
             lengthChange: true,
             scrollX: true,
+            scrollY: '65vh',
             paging: false,
             info: true,
             order: [[3, 'desc']],

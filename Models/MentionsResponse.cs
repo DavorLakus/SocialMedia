@@ -82,7 +82,7 @@ public class PostTableViewModel
         Type = post.Type;
         From = post.From;
         Url = post.Url;
-        KeywordName = post.KeywordName;
+        KeywordName = Keyword.RemoveGuid(post.KeywordName);
         ViewCount = post.ViewCount;
         Reach = post.Reach;
         SourceReach = post.SourceReach;
