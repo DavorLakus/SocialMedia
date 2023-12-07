@@ -92,7 +92,7 @@
     function initTables() {
         initTable(1);
         initTable(2);
-        updateTables();
+        updateTables(false);
     }
 
     var areTabsInView = true;
@@ -109,7 +109,6 @@
             $(this).blur();
         });
 
-        // Add this event listener to check the scroll position and show/hide the sticky tabs
         window.onscroll = function () {
             var tabsPosition = document.getElementById('postsTabs').getBoundingClientRect();
 
@@ -124,8 +123,6 @@
                 $('#sticky-tabs').hide();
                 areTabsInView = false;
             }
-
-            // The rest of your existing scroll logic...
         };
 
         // Listen for Bootstrap tab change
@@ -136,10 +133,10 @@
         });
     }
 
-    function updateTables() {
+    function updateTables(isUpdating = true) {
         $(`#v1table`).DataTable().clear().draw();
         $(`#v2table`).DataTable().clear().draw();
-        fetchTablesData(true);
+        fetchTablesData(isUpdating);
     }
 
     function fetchTablesData(isUpdating) {
@@ -165,6 +162,9 @@
         }).then((responseData) => {
             if (responseData.value) {
                 populateRows(id, responseData.value);
+                if (isUpdating) {
+                    document.getElementById(`tab-view`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
             } else {
                 alert(responseData.error);
             }
@@ -176,8 +176,6 @@
             $(`#v${id}table`).DataTable().clear();
         }
         $(`#v${id}table`).DataTable().rows.add(data).draw();
-        document.getElementById(`tab-view`).scrollIntoView({behavior : 'smooth', block: 'nearest'});
-        // $(`#tab-view`).scrollIntoView('smooth');
     }
 
 </script>
@@ -303,12 +301,13 @@
                 data: 'from',
                 render: function (data, type, row, meta) {
                     if (data != null) {
-                        return `<div class="text-truncate" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
+                        return `<div class="text-truncate" style="max-width: 180px;" data-toggle="tooltip" data-placement="top" title="${data}">${data}</div>`;
                     } else {
                         return "N/A";
                     }
                 }
             },
+            { data: 'location' },
             {
                 data: 'url',
                 render: function (data, type, row, meta) {
@@ -331,20 +330,19 @@
                     return `<div style="max-width: 150px; white-space: nowrap;">${(data != null) ? getTagName(data.tagId) : "N/A"}</div>`;
                 }
             },
-            { data: 'viewCount' },
+            { data: 'videoViews' },
             { data: 'reach' },
             { data: 'sourceReach' },
             { data: 'interaction' },
             { data: 'influenceScore' },
-            { data: 'authorFollowerCount' },
-            { data: 'likeCount' },
+            { data: 'followersCount' },
             { data: 'commentCount' },
-            { data: 'shareCount' },
+            { data: 'shares' },
             { data: 'duration' },
             {
-                data: 'virality',
+                data: 'endorsement',
                 render: function (data, type, row, meta) {
-                    return Math.round(data * 100) / 100;
+                    return data;
                 }
             },
             { data: 'autoSentiment' }

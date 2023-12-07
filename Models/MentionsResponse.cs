@@ -1,6 +1,3 @@
-using System.Reflection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 
 public class V1MentionsResponse
@@ -39,24 +36,31 @@ public class Post
     public string OriginalPhoto { get; set; }
     public List<string> Photos { get; set; }
     public List<string> OriginalPhotos { get; set; }
-    public int ViewCount { get; set; }
+    public int? ViewCount { get; set; }
+    public int? PlayCount { get; set; }
+    public int? Views { get; set; }
     public int Reach { get; set; }
-    public double Virality { get; set; }
     public long DatabaseInsertTime { get; set; }
     public List<string> Keywords { get; set; }
-    public List<string> Locations { get; set; }
+    public List<string>? Locations { get; set; }
     public string AutoSentiment { get; set; }
     public int SourceReach { get; set; }
     public int Interaction { get; set; }
     public int InfluenceScore { get; set; }
-    public int AuthorFollowerCount { get; set; }
+    public int FollowersCount { get; set; }
     public double Score { get; set; }
     public string Domain { get; set; }
-    public int LikeCount { get; set; }
+    public int? LikeCount { get; set; }
+    public int? DiggCount { get; set; }
+    public int? TotalReactionsCount { get; set; }
+    public int? FavoriteCount { get; set; }
     public int CommentCount { get; set; }
-    public int ShareCount { get; set; }
+    public double? Virality { get; set; }
+    public int? ShareCount { get; set; }
+    public int? RetweetCount { get; set; }
     public string Description { get; set; }
-    public int Duration { get; set; }
+    public int? Duration { get; set; }
+    public int? VideoDurationSeconds { get; set; }
     public List<Tag>? TagFeedLocations { get; set; }
     public int KeywordId { get; set; }
     public string KeywordName { get; set; }
@@ -81,20 +85,20 @@ public class PostTableViewModel
         InsertTime = post.InsertTime;
         Type = post.Type;
         From = post.From;
+        Location = getLocation(post.Locations);
         Url = post.Url;
         KeywordName = Keyword.RemoveGuid(post.KeywordName);
-        ViewCount = post.ViewCount;
+        VideoViews = post.ViewCount ?? post.PlayCount ?? post.Views ?? 0;
         Reach = post.Reach;
         SourceReach = post.SourceReach;
         Interaction = post.Interaction;
         InfluenceScore = post.InfluenceScore;
-        AuthorFollowerCount = post.AuthorFollowerCount;
-        LikeCount = post.LikeCount;
+        FollowersCount = post.FollowersCount;
+        Endorsement = post.TotalReactionsCount ?? post.LikeCount ?? post.DiggCount ?? post.FavoriteCount ?? post.Virality ?? 0;
         CommentCount = post.CommentCount;
-        ShareCount = post.ShareCount;
-        Duration = post.Duration;
+        Shares = post.RetweetCount ?? post.ShareCount ?? 0;
+        Duration = post.Duration ?? post.VideoDurationSeconds ?? 0;
         Tag = post.TagFeedLocations?.FirstOrDefault();
-        Virality = post.Virality;
         AutoSentiment = post.AutoSentiment;
     }
 
@@ -104,19 +108,27 @@ public class PostTableViewModel
     public long InsertTime { get; set; }
     public string Type { get; set; }
     public string From { get; set; }
+    public string? Location { get; set; }
     public string Url { get; set; }
     public string KeywordName { get; set; }
     public Tag? Tag { get; set; }
-    public int ViewCount { get; set; }
+    public int VideoViews { get; set; }
     public int Reach { get; set; }
     public int SourceReach { get; set; }
     public int Interaction { get; set; }
     public int InfluenceScore { get; set; }
-    public int AuthorFollowerCount { get; set; }
-    public int LikeCount { get; set; }
+    public int FollowersCount { get; set; }
+    public double Endorsement { get; set; }
     public int CommentCount { get; set; }
-    public int ShareCount { get; set; }
+    public int Shares { get; set; }
     public int Duration { get; set; }
-    public double Virality { get; set; }
     public string AutoSentiment { get; set; }
+
+    private string getLocation(List<string>? values)
+    {
+        var locale = values?.FirstOrDefault(); 
+        if (locale == null) { return "N/A"; }
+        return locale;
+    }
+    //new CultureInfo(post.Locations.FirstOrDefault()).DisplayName;
 }
